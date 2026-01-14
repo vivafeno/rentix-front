@@ -1,0 +1,79 @@
+<div class="p-8">
+  <div class="mb-8 flex items-center justify-between">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900">
+        Hola, {{ session.user()?.firstName }} 👋
+      </h1>
+      <p class="mt-2 text-gray-600">
+        Resumen de tu gestión en: <span class="font-semibold text-blue-600">{{ session.currentCompany()?.legalName }}</span>
+      </p>
+    </div>
+    
+    <button 
+      (click)="loadRealData()" 
+      class="text-sm text-blue-600 hover:text-blue-800 underline flex items-center gap-1"
+      [class.opacity-50]="stats.loading()"
+    >
+      <span>↻</span> Actualizar datos
+    </button>
+  </div>
+
+  <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+    
+    <div class="rounded-lg bg-white p-6 shadow border-l-4 border-indigo-500">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Inmuebles</h3>
+          <p class="mt-2 text-3xl font-bold text-gray-900">
+            @if (stats.loading()) { ... } @else { {{ stats.properties() }} }
+          </p>
+        </div>
+        <div class="p-3 rounded-full bg-indigo-50 text-indigo-600">
+          🏢
+        </div>
+      </div>
+    </div>
+    
+    <div class="rounded-lg bg-white p-6 shadow border-l-4 border-emerald-500">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Contratos Activos</h3>
+          <p class="mt-2 text-3xl font-bold text-gray-900">
+            @if (stats.loading()) { ... } @else { {{ stats.contracts() }} }
+          </p>
+        </div>
+        <div class="p-3 rounded-full bg-emerald-50 text-emerald-600">
+          📄
+        </div>
+      </div>
+    </div>
+
+    <div class="rounded-lg bg-white p-6 shadow border-l-4 border-orange-500">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Clientes</h3>
+          <p class="mt-2 text-3xl font-bold text-gray-900">
+            @if (stats.loading()) { ... } @else { {{ stats.clients() }} }
+          </p>
+        </div>
+        <div class="p-3 rounded-full bg-orange-50 text-orange-600">
+          👥
+        </div>
+      </div>
+    </div>
+
+  </div>
+  
+  @if (!stats.loading() && stats.properties() === 0 && stats.contracts() === 0) {
+    <div class="mt-12 text-center rounded-lg border-2 border-dashed border-gray-300 p-12">
+      <h3 class="mt-2 text-sm font-semibold text-gray-900">Empieza por el principio</h3>
+      <p class="mt-1 text-sm text-gray-500">Parece que esta empresa es nueva. Crea tu primer inmueble para empezar.</p>
+      <div class="mt-6">
+        <button type="button" class="inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500">
+          + Crear Inmueble
+        </button>
+      </div>
+    </div>
+  }
+
+</div>

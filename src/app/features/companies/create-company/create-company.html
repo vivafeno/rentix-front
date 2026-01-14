@@ -1,0 +1,90 @@
+<div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+  <div class="sm:mx-auto sm:w-full sm:max-w-md text-center">
+    <h2 class="text-3xl font-bold tracking-tight text-gray-900">Nueva Empresa</h2>
+    <p class="mt-2 text-sm text-gray-600">Paso {{ currentStep() }} de 4</p>
+  </div>
+
+  <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+    <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+      <div class="mb-8 w-full bg-gray-200 rounded-full h-2.5">
+        <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" [style.width]="(currentStep() / 4) * 100 + '%'"></div>
+      </div>
+
+      @if (errorMessage()) {
+        <div class="mb-6 p-4 rounded-md bg-red-50 border border-red-200 text-sm text-red-700 animate-fade-in">
+          ⚠️ {{ errorMessage() }}
+        </div>
+      }
+
+      @if (currentStep() === 1) {
+        <div class="flex border-b mb-6">
+          <button (click)="setUserMode('existing')" [class.border-blue-500]="userMode() === 'existing'" class="w-1/2 py-2 border-b-2 font-medium text-sm">Existente</button>
+          <button (click)="setUserMode('new')" [class.border-blue-500]="userMode() === 'new'" class="w-1/2 py-2 border-b-2 font-medium text-sm">Nuevo</button>
+        </div>
+
+        @if (userMode() === 'existing') {
+          <div class="space-y-6">
+            <select (change)="onUserSelect($event)" class="block w-full rounded-md border-gray-300 py-2 border">
+              <option value="">-- Seleccionar Owner --</option>
+              @for (user of availableUsers(); track user.id) {
+                <option [value]="user.id">{{ user.email }}</option>
+              }
+            </select>
+            <button (click)="submitStep1()" [disabled]="!selectedUserId() || isLoading()" class="w-full bg-blue-600 py-2 text-white rounded-md">Siguiente</button>
+          </div>
+        }
+
+        @if (userMode() === 'new') {
+          <form [formGroup]="newUserForm" (ngSubmit)="submitStep1()" class="space-y-4">
+            <input type="email" formControlName="email" placeholder="Email" class="w-full border rounded-md p-2">
+            <input type="password" formControlName="password" placeholder="Password" class="w-full border rounded-md p-2">
+            <button type="submit" [disabled]="newUserForm.invalid || isLoading()" class="w-full bg-blue-600 py-2 text-white rounded-md">Crear Usuario</button>
+          </form>
+        }
+      }
+
+      @if (currentStep() === 2) {
+        <form [formGroup]="addressForm" (ngSubmit)="submitStep2()" class="space-y-4">
+          <input type="text" formControlName="addressLine1" placeholder="Dirección" class="w-full border rounded-md p-2">
+          <div class="grid grid-cols-2 gap-2">
+            <input type="text" formControlName="city" placeholder="Ciudad" class="w-full border rounded-md p-2">
+            <input type="text" formControlName="zipCode" placeholder="CP" class="w-full border rounded-md p-2">
+          </div>
+          <div class="flex gap-2">
+            <button type="button" (click)="goBack()" class="w-1/3 border py-2 rounded-md">Atrás</button>
+            <button type="submit" [disabled]="addressForm.invalid || isLoading()" class="w-2/3 bg-blue-600 py-2 text-white rounded-md">Siguiente</button>
+          </div>
+        </form>
+      }
+
+      @if (currentStep() === 3) {
+        <form [formGroup]="fiscalForm" (ngSubmit)="submitStep3()" class="space-y-4">
+          <input type="text" formControlName="taxName" placeholder="Razón Social" class="w-full border rounded-md p-2">
+          <input type="text" formControlName="taxId" placeholder="CIF" class="w-full border rounded-md p-2 uppercase">
+          <div class="flex gap-2">
+            <button type="button" (click)="goBack()" class="w-1/3 border py-2 rounded-md">Atrás</button>
+            <button type="submit" [disabled]="fiscalForm.invalid || isLoading()" class="w-2/3 bg-blue-600 py-2 text-white rounded-md">Siguiente</button>
+          </div>
+        </form>
+      }
+
+      @if (currentStep() === 4) {
+        <form [formGroup]="confirmationForm" (ngSubmit)="submitStep4()" class="space-y-6">
+          <div class="bg-gray-50 p-4 rounded border text-sm space-y-2">
+            <p><strong>Owner:</strong> {{ summaryData().userEmail }}</p>
+            <p><strong>Entidad:</strong> {{ summaryData().taxName }}</p>
+            <p><strong>Dirección:</strong> {{ summaryData().address }}</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <input formControlName="acceptTerms" type="checkbox" class="h-4 w-4">
+            <label class="text-sm">Acepto registrar esta empresa.</label>
+          </div>
+          <div class="flex gap-2">
+            <button type="button" (click)="goBack()" class="w-1/3 border py-2 rounded-md">Atrás</button>
+            <button type="submit" [disabled]="confirmationForm.invalid || isLoading()" class="w-2/3 bg-green-600 py-2 text-white font-bold rounded-md">FINALIZAR</button>
+          </div>
+        </form>
+      }
+    </div>
+  </div>
+</div>
