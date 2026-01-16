@@ -17,15 +17,17 @@ export class MainLayoutComponent {
   // Definición del menú (Signal no es obligatorio para constantes, pero es buena práctica en v21)
   menuItems = signal([
     { label: 'Dashboard', icon: '📊', route: '/app/dashboard' },
-    { label: 'Impuestos', icon: '💰', route: '/app/taxes' },
+    { label: 'Inmuebles', icon: '🏠', route: '/app/properties' }, // 🏠 Icono casa
     { label: 'Contratos', icon: '📄', route: '/app/contracts' },
     { label: 'Clientes', icon: '👥', route: '/app/clients' },
+    { label: 'Impuestos', icon: '💰', route: '/app/taxes' },
+    { label: 'Configuración', icon: '⚙️', route: '/app/settings' }, // ⚙️ Icono engranaje
   ]);
 
   logout() {
     this.session.logout();
   }
-  
+
   changeCompany() {
     this._router.navigate(['/select-company']);
   }

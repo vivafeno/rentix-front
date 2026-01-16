@@ -3,7 +3,13 @@
 
 import { Address } from '../models/address';
 import { Company } from '../models/company';
+import { PropertyStatus } from '../models/property-status';
+import { PropertyType } from '../models/property-type';
 export interface Property {
+
+  /**
+   * Dirección física
+   */
   address: Address;
   bathrooms?: number;
 
@@ -11,6 +17,10 @@ export interface Property {
    * Referencia Catastral
    */
   cadastralReference?: string;
+
+  /**
+   * Empresa propietaria
+   */
   company: Company;
   companyId: string;
 
@@ -25,7 +35,7 @@ export interface Property {
   deletedAt?: string | null;
 
   /**
-   * Descripción detallada
+   * Notas detalladas
    */
   description?: string;
   floor?: string;
@@ -36,7 +46,7 @@ export interface Property {
   id: string;
 
   /**
-   * Código interno único
+   * Código interno de gestión
    */
   internalCode: string;
 
@@ -48,22 +58,22 @@ export interface Property {
   longitude?: number;
 
   /**
-   * Alias amigable
+   * Nombre comercial o alias
    */
   name: string;
 
   /**
-   * Precio alquiler sugerido
+   * Precio base sugerido
    */
   rentPrice?: number;
   rooms?: number;
-  status: 'AVAILABLE' | 'RENTED' | 'RESERVED' | 'MAINTENANCE' | 'UNAVAILABLE';
+  status: PropertyStatus;
 
   /**
-   * Superficie m2
+   * Metros cuadrados
    */
   surfaceM2?: number;
-  type: 'RESIDENTIAL' | 'COMMERCIAL' | 'INDUSTRIAL' | 'PARKING' | 'STORAGE' | 'ROOM' | 'LAND' | 'OTHER';
+  type: PropertyType;
 
   /**
    * Fecha de última actualización del registro

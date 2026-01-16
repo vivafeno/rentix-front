@@ -1,0 +1,81 @@
+<div class="p-8 bg-gray-50 min-h-screen">
+  <div class="max-w-7xl mx-auto">
+    
+    <header class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
+      <div>
+        <h1 class="text-3xl font-black text-gray-900 tracking-tight">Gestión de Inmuebles</h1>
+        <p class="text-gray-500 font-medium mb-4">
+          Empresa: <span class="text-indigo-600 font-bold">{{ session.currentCompany()?.legalName }}</span>
+        </p>
+
+        <div class="inline-flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm">
+          <span class="text-xs font-bold text-gray-400 uppercase">Filtrar:</span>
+          <select [ngModel]="selectedTypeFilter()" 
+                  (ngModelChange)="selectedTypeFilter.set($event)"
+                  class="bg-transparent border-none text-sm font-semibold text-gray-700 focus:ring-0 cursor-pointer p-0 pr-8 border-0">
+            <option value="ALL">Todos los tipos</option>
+            @for (item of availableTypes; track item.value) {
+              <option [value]="item.value">{{ item.label }}</option>
+            }
+          </select>
+        </div>
+      </div>
+      
+      <button (click)="loadProperties()" 
+         class="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl transition-all shadow-lg shadow-indigo-100 active:scale-95 border-0 cursor-pointer">
+         ＋ Refrescar Lista
+      </button>
+    </header>
+
+    @if (isLoading()) {
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        @for (i of [1,2,3]; track i) {
+           <div class="h-64 bg-white rounded-3xl border border-gray-100 animate-pulse shadow-sm"></div>
+        }
+      </div>
+    } @else {
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        @for (prop of filteredProperties(); track prop.id) {
+          <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all group relative flex flex-col justify-between min-h-[220px]">
+            
+            <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+               <button (click)="deleteProperty(prop.id)" 
+                       class="bg-white/90 backdrop-blur shadow-sm p-2 rounded-xl text-gray-400 hover:text-red-600 border border-gray-100 transition-colors cursor-pointer">
+                 🗑️
+               </button>
+            </div>
+            
+            <div>
+              <div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-2xl mb-6 font-bold">
+                @switch (prop.type) {
+                  @case ('RESIDENTIAL') { 🏢 }
+                  @case ('COMMERCIAL') { 🏪 }
+                  @case ('PARKING') { 🚗 }
+                  @default { 🏠 }
+                }
+              </div>
+              
+              <h3 class="text-xl font-black text-gray-900 mb-1 leading-tight truncate">{{ prop.name }}</h3>
+              
+              <p class="text-sm font-bold text-gray-400 uppercase tracking-tight truncate">
+                {{ prop.address.addressLine1 }}, {{ prop.address.city }}
+              </p>
+            </div>
+            
+            <div class="mt-8 pt-6 border-t border-gray-50 flex items-center justify-between text-[10px] font-black uppercase tracking-[0.15em] text-gray-400">
+              <span class="flex items-center gap-2">
+                 <span>📏 {{ prop.surfaceM2 || 0 }} m²</span>
+                 <span class="bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded">{{ prop.type }}</span>
+              </span>
+              <span>Ref: {{ prop.internalCode }}</span>
+            </div>
+          </div>
+        } @empty {
+          <div class="col-span-full py-20 text-center">
+            <p class="text-gray-900 font-bold">No se encontraron inmuebles</p>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

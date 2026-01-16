@@ -7,26 +7,25 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { Property } from '../../models/property';
 
-export interface PropertyControllerFindOne$Params {
+export interface PropertyControllerRemove$Params {
   id: string;
 }
 
-export function propertyControllerFindOne(http: HttpClient, rootUrl: string, params: PropertyControllerFindOne$Params, context?: HttpContext): Observable<StrictHttpResponse<Property>> {
-  const rb = new RequestBuilder(rootUrl, propertyControllerFindOne.PATH, 'get');
+export function propertyControllerRemove(http: HttpClient, rootUrl: string, params: PropertyControllerRemove$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+  const rb = new RequestBuilder(rootUrl, propertyControllerRemove.PATH, 'delete');
   if (params) {
     rb.path('id', params.id, {});
   }
 
   return http.request(
-    rb.build({ responseType: 'json', accept: 'application/json', context })
+    rb.build({ responseType: 'text', accept: '*/*', context })
   ).pipe(
     filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
     map((r: HttpResponse<any>) => {
-      return r as StrictHttpResponse<Property>;
+      return (r as HttpResponse<any>).clone({ body: undefined }) as StrictHttpResponse<void>;
     })
   );
 }
 
-propertyControllerFindOne.PATH = '/properties/{id}';
+propertyControllerRemove.PATH = '/properties/{id}';

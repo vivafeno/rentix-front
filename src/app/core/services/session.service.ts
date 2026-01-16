@@ -1,15 +1,16 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Injectable, computed, inject, signal, effect } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs'; // 👈 IMPORTANTE
+import { firstValueFrom } from 'rxjs';
 import { ApiConfiguration } from '../../api/api-configuration';
 
-// Modelos
+// --- MODELOS ---
 import { MeDto, CompanyMeDto } from '../../api/models';
 
-// Funciones
+// --- FUNCIONES API (OpenAPI) ---
 import { userControllerGetMe } from '../../api/fn/users/user-controller-get-me';
 import { companyControllerGetMyCompanies } from '../../api/fn/companies/company-controller-get-my-companies';
+import { companyContextControllerSelectCompany } from '../../api/fn/context/company-context-controller-select-company';
 
 @Injectable({
   providedIn: 'root'
@@ -19,99 +20,179 @@ export class SessionService {
   private config = inject(ApiConfiguration);
   private router = inject(Router);
 
-  // --- STATE (Signals) ---
+  // --------------------------------------------------------------------------------
+  // ESTADO (Signals Privados)
+  // --------------------------------------------------------------------------------
   private _user = signal<MeDto | null>(null);
   private _companies = signal<CompanyMeDto[]>([]);
-  // Intentamos recuperar la empresa seleccionada de la memoria
   private _selectedCompanyId = signal<string | null>(localStorage.getItem('selected_company_id'));
 
-  // --- COMPUTED ---
+  // 🚨 SEMÁFORO DE CARGA (Vital para F5)
+  // Si hay token al iniciar, nacemos en estado "cargando" para bloquear redirecciones
+  public isLoading = signal<boolean>(!!localStorage.getItem('access_token'));
+
+  // --------------------------------------------------------------------------------
+  // LECTURA (Signals Públicos & Computados)
+  // --------------------------------------------------------------------------------
+
   readonly user = this._user.asReadonly();
   readonly companies = this._companies.asReadonly();
+  readonly companyId = this._selectedCompanyId.asReadonly();
 
-  readonly currentCompany = computed(() => 
+  readonly currentCompany = computed(() =>
     this._companies().find(c => c.companyId === this._selectedCompanyId()) || null
   );
 
-  readonly currentRole = computed(() => 
+  readonly currentRole = computed(() =>
     this.currentCompany()?.role || 'VIEWER'
   );
 
-  // --- ACCIONES ---
+  // --------------------------------------------------------------------------------
+  // 👮 CONSTRUCTOR: EL POLICÍA DE TRÁFICO
+  // --------------------------------------------------------------------------------
+  constructor() {
+    // 1. AUTO-ARRANQUE (Fuera del effect para que solo ocurra una vez)
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      console.log('🔄 Sesión detectada. Iniciando recarga de datos...');
+      this.refreshSessionData();
+    }
 
-  /**
-   * 1. Guarda tokens
-   * 2. Descarga datos del usuario (espera a que termine)
-   * 3. Redirige
-   */
+    // 2. EL EFECTO (Vigila la navegación)
+    effect(() => {
+      // 🚨 BLOQUEO: Si estamos cargando datos, NO redirigimos a ningún lado. Esperamos.
+      if (this.isLoading()) {
+        return;
+      }
+
+      const user = this._user();
+      const companies = this._companies();
+
+      // Solo actuamos si el usuario ya ha cargado
+      if (user) {
+        const currentUrl = this.router.url;
+
+        // CASO: Usuario sin empresas
+        if (companies.length === 0) {
+          // Excepciones para no molestar si está creando empresa o en login
+          if (!currentUrl.includes('create-company') &&
+            !currentUrl.includes('login') &&
+            !currentUrl.includes('select-company')) {
+
+            console.log('🔀 Redirigiendo a selección (Usuario sin empresas)');
+            this.router.navigate(['/select-company']);
+          }
+        }
+      }
+    });
+  }
+
+  // --------------------------------------------------------------------------------
+  // MÉTODOS DE GESTIÓN DE SESIÓN
+  // --------------------------------------------------------------------------------
+
   async loginSuccess(accessToken: string, refreshToken: string) {
-    // A. Guardar Tokens
     localStorage.setItem('access_token', accessToken);
     localStorage.setItem('refresh_token', refreshToken);
 
-    // B. Cargar datos (Esperamos con await)
+    // Activamos semáforo antes de pedir datos
+    this.isLoading.set(true);
     await this.refreshSessionData();
 
-    // C. Decidir adónde ir
-    if (this._companies().length === 0) {
-        // Caso raro: Usuario sin ninguna empresa -> Lo mandamos a crear una o contactar soporte
-        // Por ahora, al selector igual para que vea el mensaje de "vacío"
-        this.router.navigate(['/select-company']);
-    } 
-    else if (this._selectedCompanyId() && this.currentCompany()) {
-      // Si ya tenía una empresa seleccionada válida, al Dashboard
+    // Capturamos el estado actual
+    const companies = this._companies();
+    const currentId = this._selectedCompanyId();
+    const currentCompany = this.currentCompany();
+
+    // Lógica de redirección
+    if (companies.length === 0) {
+      this.router.navigate(['/select-company']);
+    }
+    else if (currentId && currentCompany) {
       this.router.navigate(['/app/dashboard']);
-    } 
+    }
     else {
-      // Si es la primera vez o caducó la selección, a elegir empresa
-      this.router.navigate(['/select-company']); 
+      this.router.navigate(['/select-company']);
     }
   }
 
   async refreshSessionData() {
     try {
-      // Lanzamos las dos peticiones en paralelo y las convertimos a promesas
+      this.isLoading.set(true); // Aseguramos bloqueo
+
       const pUser = firstValueFrom(userControllerGetMe(this.http, this.config.rootUrl));
       const pCompanies = firstValueFrom(companyControllerGetMyCompanies(this.http, this.config.rootUrl));
 
-      // Esperamos a que AMBAS terminen
       const [userResponse, companiesResponse] = await Promise.all([pUser, pCompanies]);
 
-      // Guardamos en las señales (Signals)
-      // Nota: Usamos .body porque ng-openapi-gen devuelve StrictHttpResponse
       this._user.set(userResponse.body);
       this._companies.set(companiesResponse.body);
 
-      console.log('✅ Sesión actualizada:', { 
-        user: userResponse.body, 
-        companies: companiesResponse.body 
-      });
+      const currentId = this._selectedCompanyId();
+      if (currentId && !companiesResponse.body.some(c => c.companyId === currentId)) {
+        this._selectedCompanyId.set(null);
+        localStorage.removeItem('selected_company_id');
+      }
+
+      console.log('✅ Datos recargados OK');
 
     } catch (error) {
       console.error('❌ Error cargando datos de sesión', error);
-      // Si falla la carga de datos (ej. token inválido), cerramos sesión
       this.logout();
+    } finally {
+      // 🚨 IMPORTANTE: Apagamos el semáforo pase lo que pase para liberar la UI
+      this.isLoading.set(false);
     }
   }
 
-  selectCompany(companyId: string) {
-    const exists = this._companies().some(c => c.companyId === companyId);
-    if (exists) {
-      this._selectedCompanyId.set(companyId);
-      localStorage.setItem('selected_company_id', companyId);
+async selectCompany(companyId: string) {
+  const exists = this._companies().some(c => c.companyId === companyId);
+
+  if (exists) {
+    try {
+      this.isLoading.set(true);
+
+      // 1. Llamada al Backend
+      const response: any = await firstValueFrom(
+        this.http.post(`${this.config.rootUrl}/context/select-company`, { companyId })
+      );
+
+      // 🚨 LA CLAVE: Tu backend devuelve un objeto con la propiedad 'accessToken'
+      // No guardes 'response' directamente, guarda 'response.accessToken'
+      const token = response.accessToken;
+
+      if (token) {
+        localStorage.setItem('access_token', token); // Guardamos el token contextualizado
+        localStorage.setItem('selected_company_id', companyId);
+        this._selectedCompanyId.set(companyId);
+        
+        console.log('✅ Token sincronizado con éxito');
+        
+        // OPCIONAL: Forzamos recarga del perfil para que SessionService 
+        // vea los nuevos datos (companyRole, etc)
+        await this.refreshSessionData();
+      }
+
       this.router.navigate(['/app/dashboard']);
+
+    } catch (error) {
+      console.error('❌ Error en el cambio de contexto:', error);
+    } finally {
+      this.isLoading.set(false);
     }
   }
+}
 
   logout() {
     this._user.set(null);
     this._companies.set([]);
     this._selectedCompanyId.set(null);
-    
+    this.isLoading.set(false); // Liberamos semáforo
+
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('selected_company_id');
-    
+
     this.router.navigate(['/login']);
   }
 }

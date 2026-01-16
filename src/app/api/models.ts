@@ -27,6 +27,8 @@ export type { LoginDto } from './models/login-dto';
 export type { MeDto } from './models/me-dto';
 export type { Object } from './models/object';
 export type { Property } from './models/property';
+export type { PropertyStatus } from './models/property-status';
+export type { PropertyType } from './models/property-type';
 export type { SelectCompanyDto } from './models/select-company-dto';
 export type { Tax } from './models/tax';
 export type { TokensDto } from './models/tokens-dto';

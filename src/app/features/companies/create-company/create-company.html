@@ -1,90 +1,204 @@
 <div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-  <div class="sm:mx-auto sm:w-full sm:max-w-md text-center">
-    <h2 class="text-3xl font-bold tracking-tight text-gray-900">Nueva Empresa</h2>
-    <p class="mt-2 text-sm text-gray-600">Paso {{ currentStep() }} de 4</p>
+
+  <div class="sm:mx-auto sm:w-full sm:max-w-md">
+    <h2 class="text-center text-3xl font-bold tracking-tight text-gray-900">
+      Alta de Nueva Empresa
+    </h2>
+    <p class="mt-2 text-center text-sm text-gray-600">
+      Paso {{ currentStep() }} de 4: {{
+      currentStep() === 1 ? 'Usuario Administrador' :
+      currentStep() === 2 ? 'Domicilio Fiscal' :
+      currentStep() === 3 ? 'Datos Facturae' : 'Confirmación Final'
+      }}
+    </p>
   </div>
 
   <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
     <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+
       <div class="mb-8 w-full bg-gray-200 rounded-full h-2.5">
-        <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" [style.width]="(currentStep() / 4) * 100 + '%'"></div>
+        <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-500"
+          [style.width]="(currentStep() / 4) * 100 + '%'"></div>
       </div>
 
       @if (errorMessage()) {
-        <div class="mb-6 p-4 rounded-md bg-red-50 border border-red-200 text-sm text-red-700 animate-fade-in">
-          ⚠️ {{ errorMessage() }}
-        </div>
+      <div class="mb-6 p-4 rounded-md bg-red-50 border border-red-200 flex items-start animate-fade-in">
+        <span class="text-red-500 mr-2 text-xl">⚠️</span>
+        <span class="text-sm text-red-700 break-words pt-0.5">{{ errorMessage() }}</span>
+      </div>
       }
 
       @if (currentStep() === 1) {
-        <div class="flex border-b mb-6">
-          <button (click)="setUserMode('existing')" [class.border-blue-500]="userMode() === 'existing'" class="w-1/2 py-2 border-b-2 font-medium text-sm">Existente</button>
-          <button (click)="setUserMode('new')" [class.border-blue-500]="userMode() === 'new'" class="w-1/2 py-2 border-b-2 font-medium text-sm">Nuevo</button>
+      <div class="flex border-b border-gray-200 mb-6">
+        <button (click)="setUserMode('existing')"
+          [class]="userMode() === 'existing' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+          class="w-1/2 py-3 px-1 text-center border-b-2 font-medium text-sm transition-colors focus:outline-none">
+          Usuario Existente
+        </button>
+        <button (click)="setUserMode('new')"
+          [class]="userMode() === 'new' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+          class="w-1/2 py-3 px-1 text-center border-b-2 font-medium text-sm transition-colors focus:outline-none">
+          Nuevo Usuario
+        </button>
+      </div>
+
+      @if (userMode() === 'existing') {
+      <div class="space-y-6 animate-fade-in">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Seleccionar Administrador (Owner)</label>
+          <select (change)="onUserSelect($event)"
+            class="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm border h-10 bg-white">
+            <option value="">-- Selecciona un usuario --</option>
+            @for (user of availableUsers(); track user.id) {
+            <option [value]="user.id">
+              {{ user.firstName }} {{ user.lastName }} ({{ user.email }})
+            </option>
+            }
+          </select>
+        </div>
+        <button (click)="submitStep1()" [disabled]="!selectedUserId() || isLoading()"
+          class="w-full flex justify-center rounded-md border border-transparent bg-blue-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 disabled:opacity-50">
+          {{ isLoading() ? 'Procesando...' : 'Siguiente: Dirección >' }}
+        </button>
+      </div>
+      }
+
+
+      @if (userMode() === 'new') {
+      <form [formGroup]="newUserForm" (ngSubmit)="submitStep1()" class="space-y-4 animate-fade-in">
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Nombre</label>
+            <input type="text" formControlName="firstName" placeholder="Nombre"
+              class="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 border shadow-sm sm:text-sm">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Apellidos</label>
+            <input type="text" formControlName="lastName" placeholder="Apellidos"
+              class="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 border shadow-sm sm:text-sm">
+          </div>
         </div>
 
-        @if (userMode() === 'existing') {
-          <div class="space-y-6">
-            <select (change)="onUserSelect($event)" class="block w-full rounded-md border-gray-300 py-2 border">
-              <option value="">-- Seleccionar Owner --</option>
-              @for (user of availableUsers(); track user.id) {
-                <option [value]="user.id">{{ user.email }}</option>
-              }
-            </select>
-            <button (click)="submitStep1()" [disabled]="!selectedUserId() || isLoading()" class="w-full bg-blue-600 py-2 text-white rounded-md">Siguiente</button>
-          </div>
-        }
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Email</label>
+          <input type="email" formControlName="email" placeholder="email@ejemplo.com"
+            class="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 border shadow-sm sm:text-sm">
+        </div>
 
-        @if (userMode() === 'new') {
-          <form [formGroup]="newUserForm" (ngSubmit)="submitStep1()" class="space-y-4">
-            <input type="email" formControlName="email" placeholder="Email" class="w-full border rounded-md p-2">
-            <input type="password" formControlName="password" placeholder="Password" class="w-full border rounded-md p-2">
-            <button type="submit" [disabled]="newUserForm.invalid || isLoading()" class="w-full bg-blue-600 py-2 text-white rounded-md">Crear Usuario</button>
-          </form>
-        }
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Contraseña</label>
+          <input type="password" formControlName="password" placeholder="********"
+            class="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 border shadow-sm sm:text-sm">
+        </div>
+
+        <button type="submit" [disabled]="newUserForm.invalid || isLoading()"
+          class="w-full flex justify-center rounded-md border border-transparent bg-blue-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 disabled:opacity-50">
+          {{ isLoading() ? 'Creando Usuario...' : 'Crear Usuario y Continuar' }}
+        </button>
+      </form>
+      }
       }
 
       @if (currentStep() === 2) {
-        <form [formGroup]="addressForm" (ngSubmit)="submitStep2()" class="space-y-4">
-          <input type="text" formControlName="addressLine1" placeholder="Dirección" class="w-full border rounded-md p-2">
-          <div class="grid grid-cols-2 gap-2">
-            <input type="text" formControlName="city" placeholder="Ciudad" class="w-full border rounded-md p-2">
-            <input type="text" formControlName="zipCode" placeholder="CP" class="w-full border rounded-md p-2">
+      <form [formGroup]="addressForm" (ngSubmit)="submitStep2()" class="space-y-6 animate-fade-in">
+        <div class="border-b pb-2 mb-4">
+          <h3 class="text-lg font-medium text-gray-900">Ubicación Sede</h3>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Calle y Número</label>
+          <input type="text" formControlName="addressLine1"
+            class="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 border shadow-sm sm:text-sm">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Ciudad</label>
+            <input type="text" formControlName="city"
+              class="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 border shadow-sm sm:text-sm">
           </div>
-          <div class="flex gap-2">
-            <button type="button" (click)="goBack()" class="w-1/3 border py-2 rounded-md">Atrás</button>
-            <button type="submit" [disabled]="addressForm.invalid || isLoading()" class="w-2/3 bg-blue-600 py-2 text-white rounded-md">Siguiente</button>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Código Postal</label>
+            <input type="text" formControlName="zipCode"
+              class="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 border shadow-sm sm:text-sm">
           </div>
-        </form>
+        </div>
+        <div class="flex justify-between pt-6 gap-3">
+          <button type="button" (click)="goBack()"
+            class="w-1/3 rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm">
+            Atrás
+          </button>
+          <button type="submit" [disabled]="addressForm.invalid || isLoading()"
+            class="w-2/3 flex justify-center rounded-md bg-blue-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700">
+            Siguiente: Datos Fiscales
+          </button>
+        </div>
+      </form>
       }
 
       @if (currentStep() === 3) {
-        <form [formGroup]="fiscalForm" (ngSubmit)="submitStep3()" class="space-y-4">
-          <input type="text" formControlName="taxName" placeholder="Razón Social" class="w-full border rounded-md p-2">
-          <input type="text" formControlName="taxId" placeholder="CIF" class="w-full border rounded-md p-2 uppercase">
-          <div class="flex gap-2">
-            <button type="button" (click)="goBack()" class="w-1/3 border py-2 rounded-md">Atrás</button>
-            <button type="submit" [disabled]="fiscalForm.invalid || isLoading()" class="w-2/3 bg-blue-600 py-2 text-white rounded-md">Siguiente</button>
-          </div>
-        </form>
+      <form [formGroup]="fiscalForm" (ngSubmit)="submitStep3()" class="space-y-6 animate-fade-in">
+        <div class="border-b pb-2 mb-4">
+          <h3 class="text-lg font-medium text-gray-900">Identidad Fiscal</h3>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Razón Social</label>
+          <input type="text" formControlName="taxName"
+            class="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 border shadow-sm sm:text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">CIF / NIF</label>
+          <input type="text" formControlName="taxId"
+            class="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 border shadow-sm sm:text-sm uppercase">
+        </div>
+        <div class="flex justify-between pt-6 gap-3">
+          <button type="button" (click)="goBack()"
+            class="w-1/3 rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm">
+            Atrás
+          </button>
+          <button type="submit" [disabled]="fiscalForm.invalid || isLoading()"
+            class="w-2/3 flex justify-center rounded-md bg-blue-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700">
+            Siguiente: Confirmar
+          </button>
+        </div>
+      </form>
       }
 
       @if (currentStep() === 4) {
-        <form [formGroup]="confirmationForm" (ngSubmit)="submitStep4()" class="space-y-6">
-          <div class="bg-gray-50 p-4 rounded border text-sm space-y-2">
-            <p><strong>Owner:</strong> {{ summaryData().userEmail }}</p>
-            <p><strong>Entidad:</strong> {{ summaryData().taxName }}</p>
-            <p><strong>Dirección:</strong> {{ summaryData().address }}</p>
+      <form [formGroup]="confirmationForm" (ngSubmit)="submitStep4()" class="space-y-6 animate-fade-in">
+        <div class="bg-gray-50 p-4 rounded-lg border text-sm space-y-3 shadow-inner">
+          <div class="flex justify-between border-b border-gray-200 pb-2">
+            <span class="text-gray-500 font-medium">Administrador:</span>
+            <span class="font-bold text-gray-900">{{ summaryData().userEmail }}</span>
           </div>
-          <div class="flex items-center gap-2">
-            <input formControlName="acceptTerms" type="checkbox" class="h-4 w-4">
-            <label class="text-sm">Acepto registrar esta empresa.</label>
+          <div class="flex justify-between border-b border-gray-200 pb-2">
+            <span class="text-gray-500 font-medium">Entidad Legal:</span>
+            <span class="font-bold text-gray-900">{{ summaryData().taxName }}</span>
           </div>
-          <div class="flex gap-2">
-            <button type="button" (click)="goBack()" class="w-1/3 border py-2 rounded-md">Atrás</button>
-            <button type="submit" [disabled]="confirmationForm.invalid || isLoading()" class="w-2/3 bg-green-600 py-2 text-white font-bold rounded-md">FINALIZAR</button>
+          <div class="flex justify-between">
+            <span class="text-gray-500 font-medium">Sede Fiscal:</span>
+            <span class="text-gray-900 text-right">{{ summaryData().address }}</span>
           </div>
-        </form>
+        </div>
+        <div class="flex items-start bg-blue-50 p-3 rounded-md border border-blue-100">
+          <input formControlName="acceptTerms" type="checkbox"
+            class="h-4 w-4 mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer">
+          <label class="ml-2 text-sm text-gray-700 select-none cursor-pointer">
+            Confirmo que deseo registrar esta empresa y asignar al usuario como OWNER propietario.
+          </label>
+        </div>
+        <div class="flex justify-between gap-3">
+          <button type="button" (click)="goBack()"
+            class="w-1/3 rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm">
+            Atrás
+          </button>
+          <button type="submit" [disabled]="confirmationForm.invalid || isLoading()"
+            class="w-2/3 flex justify-center rounded-md bg-green-600 py-3 px-4 text-base font-bold text-white shadow-sm hover:bg-green-700 transition-all transform active:scale-95">
+            {{ isLoading() ? 'Procesando...' : '✨ FINALIZAR Y CREAR' }}
+          </button>
+        </div>
+      </form>
       }
+
     </div>
   </div>
 </div>

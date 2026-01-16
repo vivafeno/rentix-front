@@ -1,4 +1,4 @@
-import { Component, inject, computed } from '@angular/core'; // 👈 Asegúrate de importar computed
+import { Component, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { SessionService } from '../../../core/services/session.service';
@@ -10,25 +10,27 @@ import { SessionService } from '../../../core/services/session.service';
   templateUrl: './select-company.html'
 })
 export class SelectCompanyComponent {
-  session = inject(SessionService);
+  public session = inject(SessionService); 
   private router = inject(Router);
 
-  // 👇 ESTA ES LA VARIABLE QUE FALTABA
   isSuperAdmin = computed(() => {
-    const user = this.session.user();
-    // Verificamos si existe el usuario y si tiene el rol SUPERADMIN
-    return user?.appRole?.includes('SUPERADMIN') ?? false;
+    // Verificamos el rol correctamente
+    return this.session.user()?.appRole === 'SUPERADMIN'; 
   });
 
   onSelect(companyId: string) {
-    this.session.selectCompany(companyId);
+    // El servicio se encarga de la navegación al Dashboard
+    this.session.selectCompany(companyId); 
   }
   
   goToCreateCompany() {
-    this.router.navigate(['/create-company']);
+    // 🚨 CORRECCIÓN: La ruta en app.routes.ts es 'create-company'
+    this.router.navigate(['/create-company']); 
   }
   
   logout() {
     this.session.logout();
+    // Nota: El SessionService.logout() ya redirige al login, 
+    // pero dejar esto aquí no rompe nada.
   }
 }

@@ -47,7 +47,7 @@ export class CreateCompanyComponent implements OnInit {
   // PASO 1: Formulario ajustado al CreateUserDto (Sin nombres para evitar Error 400)
   userMode = signal<'existing' | 'new'>('existing');
   availableUsers = signal<User[]>([]);
-  
+
   newUserForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['Temp1234!', [Validators.required, Validators.minLength(6)]]
@@ -94,10 +94,10 @@ export class CreateCompanyComponent implements OnInit {
       } else {
         if (this.newUserForm.invalid) return;
         // Payload limpio para el DTO del Backend
-        const payload = { 
-          email: this.newUserForm.value.email, 
+        const payload = {
+          email: this.newUserForm.value.email,
           password: this.newUserForm.value.password,
-          appRole: 'USER' 
+          appRole: 'USER'
         };
         const res = await firstValueFrom(userControllerCreate(this.http, this.config.rootUrl, { body: payload as any }));
         const newUser = (res as any).body || res;
@@ -171,4 +171,6 @@ export class CreateCompanyComponent implements OnInit {
   setUserMode(mode: 'existing' | 'new') { this.userMode.set(mode); this.errorMessage.set(null); }
   onUserSelect(event: Event) { this.selectedUserId.set((event.target as HTMLSelectElement).value || null); }
   goBack() { if (this.currentStep() > 1) this.currentStep.update(v => v - 1); }
-}
+} 
+
+ 

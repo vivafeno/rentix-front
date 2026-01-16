@@ -1,79 +1,108 @@
-<div class="p-8">
-  <div class="mb-8 flex items-center justify-between">
+<div class="p-6 max-w-7xl mx-auto space-y-6">
+
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
-      <h1 class="text-3xl font-bold text-gray-900">
-        Hola, {{ session.user()?.firstName }} 👋
+      <h1 class="text-2xl font-bold text-slate-900">
+        Hola, {{ session.user()?.firstName || 'Gestor' }} 👋
       </h1>
-      <p class="mt-2 text-gray-600">
-        Resumen de tu gestión en: <span class="font-semibold text-blue-600">{{ session.currentCompany()?.legalName }}</span>
+      <p class="text-slate-500 text-sm">
+        Aquí tienes el resumen de tu empresa <span class="font-medium text-blue-600">{{
+          session.currentCompany()?.legalName }}</span>
       </p>
     </div>
-    
-    <button 
-      (click)="loadRealData()" 
-      class="text-sm text-blue-600 hover:text-blue-800 underline flex items-center gap-1"
-      [class.opacity-50]="stats.loading()"
-    >
-      <span>↻</span> Actualizar datos
+
+    <button
+      class="inline-flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm">
+      <span>➕</span> Crear nuevo...
     </button>
   </div>
 
-  <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
-    
-    <div class="rounded-lg bg-white p-6 shadow border-l-4 border-indigo-500">
-      <div class="flex items-center justify-between">
-        <div>
-          <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Inmuebles</h3>
-          <p class="mt-2 text-3xl font-bold text-gray-900">
-            @if (stats.loading()) { ... } @else { {{ stats.properties() }} }
-          </p>
-        </div>
-        <div class="p-3 rounded-full bg-indigo-50 text-indigo-600">
-          🏢
-        </div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    @for (stat of stats(); track stat.title) {
+    <div
+      class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-start justify-between hover:shadow-md transition-shadow">
+      <div>
+        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">{{ stat.title }}</p>
+        <p class="mt-1 text-2xl font-bold text-slate-900">{{ stat.value }}</p>
+        @if (stat.trend) {
+        <span class="text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full mt-2 inline-block">
+          {{ stat.trend }} vs mes pasado
+        </span>
+        }
+        @if (stat.subtext) {
+        <p class="text-xs text-slate-400 mt-1">{{ stat.subtext }}</p>
+        }
+      </div>
+      <div class="p-2 rounded-lg {{ stat.bg }}">
+        <span class="text-xl">{{ stat.icon }}</span>
       </div>
     </div>
-    
-    <div class="rounded-lg bg-white p-6 shadow border-l-4 border-emerald-500">
-      <div class="flex items-center justify-between">
-        <div>
-          <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Contratos Activos</h3>
-          <p class="mt-2 text-3xl font-bold text-gray-900">
-            @if (stats.loading()) { ... } @else { {{ stats.contracts() }} }
-          </p>
-        </div>
-        <div class="p-3 rounded-full bg-emerald-50 text-emerald-600">
-          📄
-        </div>
-      </div>
-    </div>
-
-    <div class="rounded-lg bg-white p-6 shadow border-l-4 border-orange-500">
-      <div class="flex items-center justify-between">
-        <div>
-          <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Clientes</h3>
-          <p class="mt-2 text-3xl font-bold text-gray-900">
-            @if (stats.loading()) { ... } @else { {{ stats.clients() }} }
-          </p>
-        </div>
-        <div class="p-3 rounded-full bg-orange-50 text-orange-600">
-          👥
-        </div>
-      </div>
-    </div>
-
+    }
   </div>
-  
-  @if (!stats.loading() && stats.properties() === 0 && stats.contracts() === 0) {
-    <div class="mt-12 text-center rounded-lg border-2 border-dashed border-gray-300 p-12">
-      <h3 class="mt-2 text-sm font-semibold text-gray-900">Empieza por el principio</h3>
-      <p class="mt-1 text-sm text-gray-500">Parece que esta empresa es nueva. Crea tu primer inmueble para empezar.</p>
-      <div class="mt-6">
-        <button type="button" class="inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500">
-          + Crear Inmueble
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <div class="lg:col-span-2 space-y-6">
+
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 min-h-[300px]">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="font-semibold text-slate-800">Evolución de Ingresos</h3>
+          <select class="text-xs border-slate-200 rounded-md text-slate-500">
+            <option>Últimos 6 meses</option>
+            <option>Este año</option>
+          </select>
+        </div>
+
+        <div
+          class="w-full h-48 bg-slate-50 rounded-lg border border-dashed border-slate-200 flex items-center justify-center text-slate-400 text-sm">
+          [ Aquí irá la gráfica de Chart.js ]
+        </div>
+      </div>
+
+    </div>
+
+    <div class="space-y-6">
+
+      <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
+        <h3 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+          🔔 Atención Requerida
+        </h3>
+        <div class="space-y-3">
+          @for (task of pendingTasks(); track task.id) {
+          <div class="flex items-start gap-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
+            <div class="w-2 h-2 mt-2 rounded-full" [ngClass]="{
+                  'bg-red-500': task.status === 'danger',
+                  'bg-orange-400': task.status === 'warning',
+                  'bg-blue-400': task.status === 'info'
+                }"></div>
+            <div>
+              <p class="text-sm font-medium text-slate-700">{{ task.title }}</p>
+              <p class="text-xs text-slate-400">{{ task.date }}</p>
+            </div>
+          </div>
+          }
+        </div>
+        <button class="w-full mt-4 text-center text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline">
+          Ver todas las notificaciones
         </button>
       </div>
+
+      <div class="bg-slate-900 p-5 rounded-xl shadow-md text-white">
+        <h3 class="font-semibold mb-4 text-slate-200">Accesos Rápidos</h3>
+        <div class="grid grid-cols-2 gap-3">
+          @for (action of quickActions; track action.label) {
+          <a [routerLink]="action.route"
+            class="flex flex-col items-center justify-center p-3 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors border border-slate-700 group cursor-pointer text-decoration-none">
+
+            <span class="text-2xl mb-1 group-hover:scale-110 transition-transform">{{ action.icon }}</span>
+            <span class="text-xs text-slate-300 text-center">{{ action.label }}</span>
+
+          </a>
+          }
+        </div>
+      </div>
+
     </div>
-  }
+  </div>
 
 </div>

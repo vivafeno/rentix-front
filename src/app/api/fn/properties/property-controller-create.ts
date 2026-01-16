@@ -8,24 +8,23 @@ import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
 import { CreatePropertyDto } from '../../models/create-property-dto';
-import { Property } from '../../models/property';
 
 export interface PropertyControllerCreate$Params {
       body: CreatePropertyDto
 }
 
-export function propertyControllerCreate(http: HttpClient, rootUrl: string, params: PropertyControllerCreate$Params, context?: HttpContext): Observable<StrictHttpResponse<Property>> {
+export function propertyControllerCreate(http: HttpClient, rootUrl: string, params: PropertyControllerCreate$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
   const rb = new RequestBuilder(rootUrl, propertyControllerCreate.PATH, 'post');
   if (params) {
     rb.body(params.body, 'application/json');
   }
 
   return http.request(
-    rb.build({ responseType: 'json', accept: 'application/json', context })
+    rb.build({ responseType: 'text', accept: '*/*', context })
   ).pipe(
     filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
     map((r: HttpResponse<any>) => {
-      return r as StrictHttpResponse<Property>;
+      return (r as HttpResponse<any>).clone({ body: undefined }) as StrictHttpResponse<void>;
     })
   );
 }

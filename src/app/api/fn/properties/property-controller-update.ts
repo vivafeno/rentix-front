@@ -7,7 +7,6 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { Property } from '../../models/property';
 import { UpdatePropertyDto } from '../../models/update-property-dto';
 
 export interface PropertyControllerUpdate$Params {
@@ -15,7 +14,7 @@ export interface PropertyControllerUpdate$Params {
       body: UpdatePropertyDto
 }
 
-export function propertyControllerUpdate(http: HttpClient, rootUrl: string, params: PropertyControllerUpdate$Params, context?: HttpContext): Observable<StrictHttpResponse<Property>> {
+export function propertyControllerUpdate(http: HttpClient, rootUrl: string, params: PropertyControllerUpdate$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
   const rb = new RequestBuilder(rootUrl, propertyControllerUpdate.PATH, 'patch');
   if (params) {
     rb.path('id', params.id, {});
@@ -23,11 +22,11 @@ export function propertyControllerUpdate(http: HttpClient, rootUrl: string, para
   }
 
   return http.request(
-    rb.build({ responseType: 'json', accept: 'application/json', context })
+    rb.build({ responseType: 'text', accept: '*/*', context })
   ).pipe(
     filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
     map((r: HttpResponse<any>) => {
-      return r as StrictHttpResponse<Property>;
+      return (r as HttpResponse<any>).clone({ body: undefined }) as StrictHttpResponse<void>;
     })
   );
 }

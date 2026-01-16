@@ -9,14 +9,28 @@ import { RequestBuilder } from '../../request-builder';
 
 import { Company } from '../../models/company';
 
+/**
+ * Parámetros para la actualización de empresa.
+ * @param id UUID de la empresa a actualizar.
+ * @param body Objeto con los datos a actualizar (Partial).
+ */
 export interface CompanyControllerUpdate$Params {
   id: string;
+  body: any; // 👈 CORRECCIÓN: Añadido campo body (se perdió en la generación)
 }
 
+/**
+ * Realiza una petición PATCH a /companies/{id}
+ * * CORRECCIÓN MANUAL: Se ha forzado la inclusión del body en el RequestBuilder.
+ */
 export function companyControllerUpdate(http: HttpClient, rootUrl: string, params: CompanyControllerUpdate$Params, context?: HttpContext): Observable<StrictHttpResponse<Company>> {
   const rb = new RequestBuilder(rootUrl, companyControllerUpdate.PATH, 'patch');
+  
   if (params) {
     rb.path('id', params.id, {});
+    
+    // 👇 CORRECCIÓN: Inyectamos el payload en la petición
+    rb.body(params.body, 'application/json'); 
   }
 
   return http.request(
