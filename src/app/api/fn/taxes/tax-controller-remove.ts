@@ -9,12 +9,12 @@ import { RequestBuilder } from '../../request-builder';
 
 import { Tax } from '../../models/tax';
 
-export interface TaxControllerFindOne$Params {
+export interface TaxControllerRemove$Params {
   id: string;
 }
 
-export function taxControllerFindOne(http: HttpClient, rootUrl: string, params: TaxControllerFindOne$Params, context?: HttpContext): Observable<StrictHttpResponse<Tax>> {
-  const rb = new RequestBuilder(rootUrl, taxControllerFindOne.PATH, 'get');
+export function taxControllerRemove(http: HttpClient, rootUrl: string, params: TaxControllerRemove$Params, context?: HttpContext): Observable<StrictHttpResponse<Tax>> {
+  const rb = new RequestBuilder(rootUrl, taxControllerRemove.PATH, 'delete');
   if (params) {
     rb.path('id', params.id, {});
   }
@@ -29,4 +29,4 @@ export function taxControllerFindOne(http: HttpClient, rootUrl: string, params: 
   );
 }
 
-taxControllerFindOne.PATH = '/tax/{id}';
+taxControllerRemove.PATH = '/tax/{id}';

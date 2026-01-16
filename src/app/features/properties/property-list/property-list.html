@@ -1,81 +1,151 @@
 <div class="p-8 bg-gray-50 min-h-screen">
   <div class="max-w-7xl mx-auto">
-    
-    <header class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
-      <div>
-        <h1 class="text-3xl font-black text-gray-900 tracking-tight">Gestión de Inmuebles</h1>
-        <p class="text-gray-500 font-medium mb-4">
-          Empresa: <span class="text-indigo-600 font-bold">{{ session.currentCompany()?.legalName }}</span>
-        </p>
 
-        <div class="inline-flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm">
-          <span class="text-xs font-bold text-gray-400 uppercase">Filtrar:</span>
-          <select [ngModel]="selectedTypeFilter()" 
-                  (ngModelChange)="selectedTypeFilter.set($event)"
-                  class="bg-transparent border-none text-sm font-semibold text-gray-700 focus:ring-0 cursor-pointer p-0 pr-8 border-0">
-            <option value="ALL">Todos los tipos</option>
+    <header class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+      <div>
+        <h1 class="text-3xl font-black text-gray-900 tracking-tight">
+          {{ isTrashMode() ? 'Papelera de Inmuebles' : 'Gestión de Inmuebles' }}
+        </h1>
+        <p class="text-gray-500 font-medium">
+          Empresa: <span class="text-indigo-600 font-bold">{{ session.currentCompany()?.legalName || 'Cargando...' }}</span>
+        </p>
+      </div>
+
+      <button (click)="loadProperties()"
+        class="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl transition-all shadow-lg shadow-indigo-100 active:scale-95 border-0 cursor-pointer">
+        ＋ {{ isTrashMode() ? 'Refrescar Papelera' : 'Refrescar Lista' }}
+      </button>
+    </header>
+
+    <div class="flex flex-col gap-4 bg-white p-4 rounded-3xl border border-gray-100 shadow-sm mb-10">
+      <div class="flex flex-wrap items-center gap-4">
+        
+        <div class="flex-1 min-w-[250px] relative">
+          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+          <input type="text" 
+                 [ngModel]="filters().search" 
+                 (ngModelChange)="updateFilter('search', $event)"
+                 placeholder="Buscar por nombre o referencia..."
+                 class="w-full pl-12 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 transition-all">
+        </div>
+
+        <div class="inline-flex items-center gap-2 bg-gray-50 px-4 py-1.5 rounded-2xl">
+          <span class="text-[10px] font-black text-gray-400 uppercase">Tipo:</span>
+          <select [ngModel]="filters().type" (ngModelChange)="updateFilter('type', $event)"
+            class="bg-transparent border-none text-sm font-bold text-gray-700 focus:ring-0 cursor-pointer p-0 pr-8">
+            <option value="ALL">Todos</option>
             @for (item of availableTypes; track item.value) {
               <option [value]="item.value">{{ item.label }}</option>
             }
           </select>
         </div>
+
+        <div class="relative">
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-[10px]">📍</span>
+          <input type="text" 
+                 [ngModel]="filters().city" 
+                 (ngModelChange)="updateFilter('city', $event)"
+                 placeholder="Ciudad..."
+                 class="pl-8 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 w-40">
+        </div>
+
+        <div class="hidden md:block w-px h-8 bg-gray-100 mx-2"></div>
+
+        <button (click)="toggleTrashView()" 
+          [class]="isTrashMode() 
+            ? 'bg-amber-50 text-amber-700 border-amber-200 shadow-inner' 
+            : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50 shadow-sm'"
+          class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl border text-sm font-black transition-all cursor-pointer">
+          {{ isTrashMode() ? '🔙 Ver Activos' : '🗑️ Papelera' }}
+        </button>
       </div>
-      
-      <button (click)="loadProperties()" 
-         class="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl transition-all shadow-lg shadow-indigo-100 active:scale-95 border-0 cursor-pointer">
-         ＋ Refrescar Lista
-      </button>
-    </header>
+    </div>
 
     @if (isLoading()) {
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         @for (i of [1,2,3]; track i) {
-           <div class="h-64 bg-white rounded-3xl border border-gray-100 animate-pulse shadow-sm"></div>
+          <div class="h-64 bg-white rounded-3xl animate-pulse shadow-sm border border-gray-100"></div>
         }
       </div>
     } @else {
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         @for (prop of filteredProperties(); track prop.id) {
-          <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all group relative flex flex-col justify-between min-h-[220px]">
+          <div [class.grayscale-[0.5]!]="isTrashMode()"
+               [class.bg-gray-50!]="isTrashMode()"
+               class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all group relative flex flex-col justify-between min-h-[260px]">
             
-            <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-               <button (click)="deleteProperty(prop.id)" 
-                       class="bg-white/90 backdrop-blur shadow-sm p-2 rounded-xl text-gray-400 hover:text-red-600 border border-gray-100 transition-colors cursor-pointer">
-                 🗑️
-               </button>
+            <div class="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+              @if (isTrashMode()) {
+                <button (click)="onRestore(prop.id)" 
+                        class="bg-green-600 shadow-lg p-2.5 rounded-xl text-white hover:bg-green-700 border-0 transition-all cursor-pointer hover:scale-110"
+                        title="Restaurar Inmueble">
+                  🔄
+                </button>
+              } @else {
+                <button (click)="editProperty(prop)" 
+                        class="bg-white shadow-md p-2.5 rounded-xl text-gray-400 hover:text-indigo-600 border border-gray-100 transition-all cursor-pointer hover:scale-110"
+                        title="Editar">
+                  ✏️
+                </button>
+                <button (click)="deleteProperty(prop.id)" 
+                        class="bg-white shadow-md p-2.5 rounded-xl text-gray-400 hover:text-red-600 border border-gray-100 transition-all cursor-pointer hover:scale-110"
+                        title="Eliminar">
+                  🗑️
+                </button>
+              }
             </div>
-            
+
             <div>
-              <div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-2xl mb-6 font-bold">
+              <div [class]="isTrashMode() ? 'bg-gray-200 text-gray-500' : 'bg-indigo-50 text-indigo-600'" 
+                   class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mb-6 font-bold transition-colors shadow-sm">
                 @switch (prop.type) {
                   @case ('RESIDENTIAL') { 🏢 }
                   @case ('COMMERCIAL') { 🏪 }
+                  @case ('INDUSTRIAL') { 🏭 }
                   @case ('PARKING') { 🚗 }
                   @default { 🏠 }
                 }
               </div>
               
-              <h3 class="text-xl font-black text-gray-900 mb-1 leading-tight truncate">{{ prop.name }}</h3>
-              
-              <p class="text-sm font-bold text-gray-400 uppercase tracking-tight truncate">
-                {{ prop.address.addressLine1 }}, {{ prop.address.city }}
+              <h3 class="text-xl font-black text-gray-900 mb-1 leading-tight truncate" [title]="prop.name">
+                {{ prop.name }}
+              </h3>
+
+              <p class="text-xs font-bold text-gray-400 uppercase tracking-widest truncate">
+                @if (prop.address) {
+                  {{ prop.address.addressLine1 }}, {{ prop.address.city }}
+                } @else {
+                  Sin dirección registrada
+                }
               </p>
             </div>
-            
+
             <div class="mt-8 pt-6 border-t border-gray-50 flex items-center justify-between text-[10px] font-black uppercase tracking-[0.15em] text-gray-400">
-              <span class="flex items-center gap-2">
-                 <span>📏 {{ prop.surfaceM2 || 0 }} m²</span>
-                 <span class="bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded">{{ prop.type }}</span>
-              </span>
+              <div class="flex items-center gap-3">
+                 <span class="flex items-center gap-1">📏 {{ prop.surfaceM2 || '0' }} m²</span>
+                 <span [class]="isTrashMode() ? 'bg-amber-100 text-amber-700' : 'bg-indigo-50 text-indigo-600'"
+                       class="px-2.5 py-1 rounded-lg text-[9px] shadow-sm">
+                   {{ isTrashMode() ? 'ELIMINADO' : prop.status }}
+                 </span>
+              </div>
               <span>Ref: {{ prop.internalCode }}</span>
             </div>
           </div>
         } @empty {
-          <div class="col-span-full py-20 text-center">
-            <p class="text-gray-900 font-bold">No se encontraron inmuebles</p>
+          <div class="col-span-full text-center py-24 bg-white rounded-[2.5rem] border-dashed border-2 border-gray-100">
+            <div class="text-5xl mb-6 opacity-40">{{ isTrashMode() ? '♻️' : '🏠' }}</div>
+            <p class="text-gray-900 font-black text-xl mb-1">
+              {{ isTrashMode() ? 'La papelera está vacía' : 'No hay inmuebles que coincidan' }}
+            </p>
+            <p class="text-gray-400 font-medium">
+              {{ isTrashMode() ? '¡Todo en orden por aquí!' : 'Prueba a cambiar los filtros o añadir un nuevo activo.' }}
+            </p>
           </div>
         }
       </div>
     }
+
+    <app-property-form (saved)="loadProperties()"></app-property-form>
+
   </div>
 </div>

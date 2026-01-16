@@ -105,6 +105,10 @@ export type { PropertyControllerRemove$Params as PropertyControllerRemove$Params
 export { propertyControllerRemove as propertyControllerRemove } from './fn/properties-inmuebles/property-controller-remove';
 export type { PropertyControllerUpdate$Params as PropertyControllerUpdate$Params } from './fn/properties-inmuebles/property-controller-update';
 export { propertyControllerUpdate as propertyControllerUpdate } from './fn/properties-inmuebles/property-controller-update';
+export type { PropertyControllerFindTrash$Params as PropertyControllerFindTrash$Params } from './fn/properties-inmuebles/property-controller-find-trash';
+export { propertyControllerFindTrash as propertyControllerFindTrash } from './fn/properties-inmuebles/property-controller-find-trash';
+export type { PropertyControllerRestore$Params as PropertyControllerRestore$Params } from './fn/properties-inmuebles/property-controller-restore';
+export { propertyControllerRestore as propertyControllerRestore } from './fn/properties-inmuebles/property-controller-restore';
 export type { ContractControllerCreate$Params as ContractControllerCreate$Params } from './fn/contracts/contract-controller-create';
 export { contractControllerCreate as contractControllerCreate } from './fn/contracts/contract-controller-create';
 export type { ContractControllerFindAll$Params as ContractControllerFindAll$Params } from './fn/contracts/contract-controller-find-all';
@@ -117,8 +121,8 @@ export type { TaxControllerFindAll$Params as TaxControllerFindAll$Params } from 
 export { taxControllerFindAll as taxControllerFindAll } from './fn/taxes/tax-controller-find-all';
 export type { TaxControllerCreate$Params as TaxControllerCreate$Params } from './fn/taxes/tax-controller-create';
 export { taxControllerCreate as taxControllerCreate } from './fn/taxes/tax-controller-create';
-export type { TaxControllerFindOne$Params as TaxControllerFindOne$Params } from './fn/taxes/tax-controller-find-one';
-export { taxControllerFindOne as taxControllerFindOne } from './fn/taxes/tax-controller-find-one';
+export type { TaxControllerRemove$Params as TaxControllerRemove$Params } from './fn/taxes/tax-controller-remove';
+export { taxControllerRemove as taxControllerRemove } from './fn/taxes/tax-controller-remove';
 export type { BillingConceptControllerFindAll$Params as BillingConceptControllerFindAll$Params } from './fn/billing-concepts/billing-concept-controller-find-all';
 export { billingConceptControllerFindAll as billingConceptControllerFindAll } from './fn/billing-concepts/billing-concept-controller-find-all';
 export type { BillingConceptControllerCreate$Params as BillingConceptControllerCreate$Params } from './fn/billing-concepts/billing-concept-controller-create';

@@ -10,10 +10,14 @@ import { User } from '../models/user';
 export interface Company {
 
   /**
-   * Cartera de clientes de la empresa
+   * Cartera de clientes (CRM) asociados a la empresa
    */
   clientProfiles?: Array<ClientProfile>;
-  companyRoles: Array<Array<CompanyRoleEntity>>;
+
+  /**
+   * Lista de usuarios y sus roles en esta empresa
+   */
+  companyRoles?: Array<CompanyRoleEntity>;
 
   /**
    * Fecha de creación del registro
@@ -21,12 +25,12 @@ export interface Company {
   createdAt: string;
 
   /**
-   * Usuario creador de la empresa (solo auditoría)
+   * Entidad del usuario creador (No se carga por defecto)
    */
   createdBy?: User;
 
   /**
-   * Usuario que creó la empresa (auditoría interna)
+   * ID del usuario que creó el registro (Auditoría)
    */
   createdByUserId?: string;
 
@@ -36,17 +40,17 @@ export interface Company {
   deletedAt?: string | null;
 
   /**
-   * Entidad fiscal asociada a la empresa
+   * Objeto completo de la identidad fiscal (Razón social, CIF...)
    */
   facturaeParty: FiscalIdentity;
 
   /**
-   * UUID de la identidad fiscal (FacturaeParty)
+   * UUID de la identidad fiscal (Referencia a FacturaeParty)
    */
   facturaePartyId: string;
 
   /**
-   * Dirección fiscal de la empresa
+   * Objeto completo de la dirección fiscal
    */
   fiscalAddress?: Address;
 
@@ -66,7 +70,7 @@ export interface Company {
   isActive: boolean;
 
   /**
-   * Inventario de propiedades pertenecientes a esta empresa.
+   * Inventario de propiedades (inmuebles) de la empresa
    */
   properties?: Array<Property>;
 

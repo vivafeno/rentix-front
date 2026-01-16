@@ -1,0 +1,87 @@
+<div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[60] transition-opacity duration-300"
+     [class.opacity-0]="!isOpen()"
+     [class.pointer-events-none]="!isOpen()"
+     (click)="close()">
+</div>
+
+<div class="fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-2xl z-[70] transform transition-transform duration-300 ease-in-out border-l border-gray-100 flex flex-col"
+     [class.translate-x-full]="!isOpen()"
+     [class.translate-x-0]="isOpen()">
+
+    <header class="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+        <div>
+            <h2 class="text-xl font-black text-gray-900">{{ isEdit() ? 'Editar Inmueble' : 'Nuevo Inmueble' }}</h2>
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">
+                Gestión de activos inmobiliarios
+            </p>
+        </div>
+        <button (click)="close()" class="p-2 hover:bg-white rounded-xl transition-colors text-gray-400 hover:text-gray-900 cursor-pointer">
+            ✕
+        </button>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-6">
+        <form [formGroup]="form" (ngSubmit)="save()" class="space-y-6">
+            
+            <section class="space-y-4">
+                <div>
+                    <label class="text-[10px] font-black uppercase text-gray-400 mb-1.5 block ml-1">Nombre del Inmueble</label>
+                    <input type="text" formControlName="name" 
+                           class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition-all font-semibold text-gray-700 outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-black uppercase text-gray-400 mb-1.5 block ml-1">Ref. Interna</label>
+                        <input type="text" formControlName="internalCode" 
+                               class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-indigo-500 transition-all font-semibold text-gray-700 outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black uppercase text-gray-400 mb-1.5 block ml-1">Tipo</label>
+                        <select formControlName="type" 
+                                class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-indigo-500 transition-all font-semibold text-gray-700 outline-none bg-white">
+                            <option value="RESIDENTIAL">Residencial</option>
+                            <option value="COMMERCIAL">Comercial</option>
+                            <option value="INDUSTRIAL">Industrial</option>
+                            <option value="PARKING">Parking</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <section formGroupName="address" class="pt-6 border-t border-gray-100 space-y-4">
+                <h4 class="text-xs font-black text-indigo-600 uppercase tracking-tighter">Dirección</h4>
+                
+                <div>
+                    <label class="text-[10px] font-black uppercase text-gray-400 mb-1.5 block ml-1">Calle / Avenida</label>
+                    <input type="text" formControlName="addressLine1" 
+                           class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-indigo-500 transition-all font-semibold text-gray-700 outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-black uppercase text-gray-400 mb-1.5 block ml-1">Ciudad</label>
+                        <input type="text" formControlName="city" 
+                               class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-indigo-500 transition-all font-semibold text-gray-700 outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black uppercase text-gray-400 mb-1.5 block ml-1">C. Postal</label>
+                        <input type="text" formControlName="postalCode" 
+                               class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-indigo-500 transition-all font-semibold text-gray-700 outline-none">
+                    </div>
+                </div>
+            </section>
+        </form>
+    </main>
+
+    <footer class="p-6 border-t border-gray-100 bg-gray-50/50 grid grid-cols-2 gap-4">
+        <button type="button" (click)="close()" 
+                class="px-6 py-3 rounded-2xl border border-gray-200 font-bold text-gray-500 hover:bg-white transition-all cursor-pointer">
+            Cancelar
+        </button>
+        <button type="button" (click)="save()" [disabled]=" isLoading()"
+                class="px-6 py-3 rounded-2xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 shadow-lg transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center">
+            {{ isLoading() ? 'Guardando...' : 'Guardar' }}
+        </button>
+    </footer>
+</div>

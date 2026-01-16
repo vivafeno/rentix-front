@@ -145,41 +145,37 @@ export class SessionService {
     }
   }
 
+// src/app/core/services/session.service.ts
+
 async selectCompany(companyId: string) {
-  const exists = this._companies().some(c => c.companyId === companyId);
+  try {
+    this.isLoading.set(true);
 
-  if (exists) {
-    try {
-      this.isLoading.set(true);
+    const response: any = await firstValueFrom(
+      this.http.post(`${this.config.rootUrl}/context/select-company`, { companyId })
+    );
 
-      // 1. Llamada al Backend
-      const response: any = await firstValueFrom(
-        this.http.post(`${this.config.rootUrl}/context/select-company`, { companyId })
-      );
+    // 🚨 CLAVE 1: Extraer el accessToken de la respuesta
+    const newToken = response.accessToken;
 
-      // 🚨 LA CLAVE: Tu backend devuelve un objeto con la propiedad 'accessToken'
-      // No guardes 'response' directamente, guarda 'response.accessToken'
-      const token = response.accessToken;
+    if (newToken) {
+      // 🚨 CLAVE 2: Sobrescribir el token en el storage
+      localStorage.setItem('access_token', newToken);
+      localStorage.setItem('selected_company_id', companyId);
+      
+      this._selectedCompanyId.set(companyId);
 
-      if (token) {
-        localStorage.setItem('access_token', token); // Guardamos el token contextualizado
-        localStorage.setItem('selected_company_id', companyId);
-        this._selectedCompanyId.set(companyId);
-        
-        console.log('✅ Token sincronizado con éxito');
-        
-        // OPCIONAL: Forzamos recarga del perfil para que SessionService 
-        // vea los nuevos datos (companyRole, etc)
-        await this.refreshSessionData();
-      }
-
+      // 🚨 CLAVE 3: Forzar recarga de datos. 
+      // Esto hará que el SessionService lea el NUEVO token y actualice el currentRole
+      await this.refreshSessionData();
+      
+      console.log('✅ Contexto de empresa activado en el Token');
       this.router.navigate(['/app/dashboard']);
-
-    } catch (error) {
-      console.error('❌ Error en el cambio de contexto:', error);
-    } finally {
-      this.isLoading.set(false);
     }
+  } catch (error) {
+    console.error('❌ Error seleccionando empresa:', error);
+  } finally {
+    this.isLoading.set(false);
   }
 }
 
