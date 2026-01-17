@@ -20,7 +20,7 @@ export interface Company {
   companyRoles?: Array<CompanyRoleEntity>;
 
   /**
-   * Fecha de creación del registro
+   * Fecha de creación
    */
   createdAt: string;
 
@@ -35,9 +35,10 @@ export interface Company {
   createdByUserId?: string;
 
   /**
-   * Fecha de eliminación lógica (soft delete)
+   * Sello de auditoría de borrado
    */
-  deletedAt?: string | null;
+  deletedAt?: {
+};
 
   /**
    * Objeto completo de la identidad fiscal (Razón social, CIF...)
@@ -60,12 +61,12 @@ export interface Company {
   fiscalAddressId?: string;
 
   /**
-   * Identificador único de la entidad
+   * ID único (UUID v4)
    */
   id: string;
 
   /**
-   * Indica si el registro está activo
+   * Indicador de visibilidad operativa
    */
   isActive: boolean;
 
@@ -75,7 +76,7 @@ export interface Company {
   properties?: Array<Property>;
 
   /**
-   * Fecha de última actualización del registro
+   * Fecha de última modificación
    */
   updatedAt: string;
 }

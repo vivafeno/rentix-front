@@ -9,14 +9,15 @@ export interface Contact {
   cargo?: string;
 
   /**
-   * Fecha de creación del registro
+   * Fecha de creación
    */
   createdAt: string;
 
   /**
-   * Fecha de eliminación lógica (soft delete)
+   * Sello de auditoría de borrado
    */
-  deletedAt?: string | null;
+  deletedAt?: {
+};
 
   /**
    * Dirección puntual del contacto (opcional)
@@ -29,12 +30,12 @@ export interface Contact {
   email?: string;
 
   /**
-   * Identificador único de la entidad
+   * ID único (UUID v4)
    */
   id: string;
 
   /**
-   * Indica si el registro está activo
+   * Indicador de visibilidad operativa
    */
   isActive: boolean;
 
@@ -54,7 +55,7 @@ export interface Contact {
   tipoContacto: 'DIRECCION' | 'EMERGENCIAS' | 'GESTORIA' | 'ADMINISTRACION' | 'PERSONAL' | 'OTRO' | 'General' | 'Emergencias' | 'Otro';
 
   /**
-   * Fecha de última actualización del registro
+   * Fecha de última modificación
    */
   updatedAt: string;
 }

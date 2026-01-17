@@ -26,14 +26,15 @@ export interface User {
   companyRoles?: Array<CompanyRoleEntity>;
 
   /**
-   * Fecha de creación del registro
+   * Fecha de creación
    */
   createdAt: string;
 
   /**
-   * Fecha de eliminación lógica (soft delete)
+   * Sello de auditoría de borrado
    */
-  deletedAt?: string | null;
+  deletedAt?: {
+};
 
   /**
    * Correo electrónico único del usuario
@@ -46,12 +47,12 @@ export interface User {
   firstName?: string;
 
   /**
-   * Identificador único de la entidad
+   * ID único (UUID v4)
    */
   id: string;
 
   /**
-   * Indica si el registro está activo
+   * Indicador de visibilidad operativa
    */
   isActive: boolean;
 
@@ -76,7 +77,7 @@ export interface User {
   phone?: string;
 
   /**
-   * Fecha de última actualización del registro
+   * Fecha de última modificación
    */
   updatedAt: string;
 }

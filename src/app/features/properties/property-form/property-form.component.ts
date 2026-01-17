@@ -6,8 +6,8 @@ import { PropertyService } from '../../../core/services/property.service';
 import { Property, UpdatePropertyDto } from '../../../api/models';
 
 /**
- * Componente de formulario para la creación y edición de inmuebles.
- * Gestiona la persistencia de datos incluyendo la entidad anidada Address.
+ * Componente de formulario tipo Drawer para la gestión integral de activos.
+ * Implementa persistencia atómica y validación estricta según estándares 2026.
  */
 @Component({
   selector: 'app-property-form',
@@ -19,7 +19,6 @@ export class PropertyFormComponent {
   private readonly fb = inject(FormBuilder);
   private readonly propertyService = inject(PropertyService);
 
-  /** Notifica al componente padre que se ha realizado una persistencia exitosa */
   @Output() saved = new EventEmitter<void>();
 
   // --- Estado de UI (Signals) ---
@@ -28,13 +27,27 @@ export class PropertyFormComponent {
   public isLoading = signal(false);
   private currentPropertyId = signal<string | null>(null);
 
-  /** Estructura del formulario reactivo alineada con el modelo Property */
+  /**
+   * Definición del Formulario Reactivo.
+   * Incluye campos técnicos, económicos y de registro catastral.
+   */
   public form: FormGroup = this.fb.group({
+    // Información Básica
     name: ['', [Validators.required, Validators.minLength(3)]],
-    internalCode: [''],
+    internalCode: ['', [Validators.required]],
+    cadastralReference: [''],
     type: ['RESIDENTIAL', [Validators.required]],
-    surfaceM2: [0],
-    status: ['AVAILABLE'],
+    status: ['AVAILABLE', [Validators.required]],
+    
+    // Datos Económicos y Técnicos
+    rentPrice: [null, [Validators.min(0)]],
+    surfaceM2: [null, [Validators.min(0)]],
+    rooms: [null, [Validators.min(0)]],
+    bathrooms: [null, [Validators.min(0)]],
+    floor: [''],
+    description: [''],
+
+    // Localización (Entidad Anidada)
     address: this.fb.group({
       addressLine1: ['', [Validators.required]],
       city: ['', [Validators.required]],
@@ -45,8 +58,8 @@ export class PropertyFormComponent {
   });
 
   /**
-   * Inicializa el formulario y activa la visibilidad del drawer.
-   * @param property Entidad para precarga en modo edición.
+   * Inicializa el estado del formulario.
+   * @param property Datos del activo para edición.
    */
   public open(property?: Property): void {
     this.isOpen.set(true);
@@ -58,13 +71,19 @@ export class PropertyFormComponent {
       this.form.patchValue({
         name: property.name,
         internalCode: property.internalCode,
+        cadastralReference: property.cadastralReference,
         type: property.type,
-        surfaceM2: property.surfaceM2,
         status: property.status,
+        rentPrice: property.rentPrice,
+        surfaceM2: property.surfaceM2,
+        rooms: property.rooms,
+        bathrooms: property.bathrooms,
+        floor: property.floor,
+        description: property.description,
         address: {
-          addressLine1: property.address?.addressLine1,
-          city: property.address?.city,
-          postalCode: property.address?.postalCode,
+          addressLine1: property.address?.addressLine1 || '',
+          city: property.address?.city || '',
+          postalCode: property.address?.postalCode || '',
           province: property.address?.province || 'Valencia',
           countryCode: property.address?.countryCode || 'ES'
         }
@@ -80,20 +99,18 @@ export class PropertyFormComponent {
     }
   }
 
-  /**
-   * Cierra el formulario y resetea el estado interno.
-   */
   public close(): void {
     this.isOpen.set(false);
     this.form.reset();
   }
 
   /**
-   * Procesa la validación y persiste los datos en el servidor.
+   * Procesa la persistencia de datos.
+   * Realiza el Type Casting necesario para la API de NestJS.
    */
   public async save(): Promise<void> {
     if (this.form.invalid) {
-      console.warn('⚠️ Validación fallida:', this.getInvalidControls());
+      console.warn('⚠️ Errores de validación detectados:', this.getInvalidControls());
       this.form.markAllAsTouched();
       return;
     }
@@ -102,10 +119,19 @@ export class PropertyFormComponent {
     try {
       const rawValue = this.form.getRawValue();
 
-      // Mapeo de datos al DTO requerido por NestJS
+      // Mapeo exhaustivo al DTO
       const dto: UpdatePropertyDto = {
-        ...rawValue,
-        surfaceM2: Number(rawValue.surfaceM2),
+        name: rawValue.name,
+        internalCode: rawValue.internalCode,
+        cadastralReference: rawValue.cadastralReference,
+        type: rawValue.type,
+        status: rawValue.status,
+        rentPrice: rawValue.rentPrice ? Number(rawValue.rentPrice) : undefined,
+        surfaceM2: rawValue.surfaceM2 ? Number(rawValue.surfaceM2) : undefined,
+        rooms: rawValue.rooms ? Number(rawValue.rooms) : undefined,
+        bathrooms: rawValue.bathrooms ? Number(rawValue.bathrooms) : undefined,
+        floor: rawValue.floor,
+        description: rawValue.description,
         address: {
           ...rawValue.address,
           type: 'PROPERTY'
@@ -115,7 +141,8 @@ export class PropertyFormComponent {
       if (this.isEdit() && this.currentPropertyId()) {
         await this.propertyService.update(this.currentPropertyId()!, dto);
       } else {
-        // Implementación futura: this.propertyService.create(dto);
+        // En una fase posterior activaremos el create:
+        // await this.propertyService.create(dto);
       }
 
       this.saved.emit();
@@ -128,32 +155,25 @@ export class PropertyFormComponent {
   }
 
   /**
-   * Identifica y devuelve los nombres de los controles con errores de validación.
-   * Incluye soporte para el grupo anidado de dirección.
+   * Inspección recursiva de controles inválidos para depuración técnica.
    */
   private getInvalidControls(): string[] {
     const invalid: string[] = [];
-    
-    // Inspección de controles raíz
-    Object.keys(this.form.controls).forEach(key => {
-      if (this.form.get(key)?.invalid) invalid.push(key);
-    });
-
-    // Inspección de controles anidados (Address)
-    const addressGroup = this.form.get('address') as FormGroup;
-    if (addressGroup) {
-      Object.keys(addressGroup.controls).forEach(key => {
-        if (addressGroup.get(key)?.invalid) invalid.push(`address.${key}`);
+    const checkControls = (group: FormGroup, prefix = '') => {
+      Object.keys(group.controls).forEach(key => {
+        const control = group.get(key);
+        if (control instanceof FormGroup) {
+          checkControls(control, `${key}.`);
+        } else if (control?.invalid) {
+          invalid.push(`${prefix}${key}`);
+        }
       });
-    }
-
+    };
+    checkControls(this.form);
     return invalid;
   }
 
-  /**
-   * Gestiona el registro de errores en la capa de UI.
-   */
   private handleError(error: any): void {
-    console.error('Property Form Error:', error);
+    console.error('Property Persistence Failure:', error);
   }
 }

@@ -3,80 +3,116 @@
 
 import { Address } from '../models/address';
 import { Company } from '../models/company';
-import { PropertyStatus } from '../models/property-status';
-import { PropertyType } from '../models/property-type';
 export interface Property {
 
   /**
-   * Dirección física
+   * Datos de localización geográfica del activo
    */
   address: Address;
+
+  /**
+   * ID físico de la dirección vinculada
+   */
+  addressId?: string;
+
+  /**
+   * Número de baños/aseos
+   */
   bathrooms?: number;
 
   /**
-   * Referencia Catastral
+   * Identificador oficial en el Catastro
    */
   cadastralReference?: string;
 
   /**
-   * Empresa propietaria
+   * Relación jerárquica con la empresa
    */
   company: Company;
+
+  /**
+   * Identificador de la organización propietaria
+   */
   companyId: string;
 
   /**
-   * Fecha de creación del registro
+   * Fecha de creación
    */
   createdAt: string;
 
   /**
-   * Fecha de eliminación lógica (soft delete)
+   * Sello de auditoría de borrado
    */
-  deletedAt?: string | null;
+  deletedAt?: {
+};
 
   /**
-   * Notas detalladas
+   * Notas adicionales o memoria descriptiva
    */
   description?: string;
+
+  /**
+   * Información de planta o altura
+   */
   floor?: string;
 
   /**
-   * Identificador único de la entidad
+   * ID único (UUID v4)
    */
   id: string;
 
   /**
-   * Código interno de gestión
+   * Código de referencia interno organizacional
    */
   internalCode: string;
 
   /**
-   * Indica si el registro está activo
+   * Indicador de visibilidad operativa
    */
   isActive: boolean;
+
+  /**
+   * Coordenada de latitud
+   */
   latitude?: number;
+
+  /**
+   * Coordenada de longitud
+   */
   longitude?: number;
 
   /**
-   * Nombre comercial o alias
+   * Denominación pública del inmueble
    */
   name: string;
 
   /**
-   * Precio base sugerido
+   * Canon de arrendamiento mensual
    */
   rentPrice?: number;
-  rooms?: number;
-  status: PropertyStatus;
 
   /**
-   * Metros cuadrados
+   * Número de estancias principales
+   */
+  rooms?: number;
+
+  /**
+   * Estado operativo actual del activo
+   */
+  status: 'AVAILABLE' | 'RENTED' | 'RESERVED' | 'MAINTENANCE' | 'UNAVAILABLE';
+
+  /**
+   * Superficie útil total
    */
   surfaceM2?: number;
-  type: PropertyType;
 
   /**
-   * Fecha de última actualización del registro
+   * Clasificación funcional del inmueble
+   */
+  type: 'RESIDENTIAL' | 'COMMERCIAL' | 'INDUSTRIAL' | 'PARKING' | 'STORAGE' | 'ROOM' | 'LAND' | 'OTHER';
+
+  /**
+   * Fecha de última modificación
    */
   updatedAt: string;
 }

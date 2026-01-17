@@ -11,22 +11,23 @@ export interface CompanyRoleEntity {
   company: Company;
 
   /**
-   * Fecha de creación del registro
+   * Fecha de creación
    */
   createdAt: string;
 
   /**
-   * Fecha de eliminación lógica (soft delete)
+   * Sello de auditoría de borrado
    */
-  deletedAt?: string | null;
+  deletedAt?: {
+};
 
   /**
-   * Identificador único de la entidad
+   * ID único (UUID v4)
    */
   id: string;
 
   /**
-   * Indica si el registro está activo
+   * Indicador de visibilidad operativa
    */
   isActive: boolean;
 
@@ -36,7 +37,7 @@ export interface CompanyRoleEntity {
   role: 'OWNER' | 'ADMIN' | 'MANAGER' | 'VIEWER';
 
   /**
-   * Fecha de última actualización del registro
+   * Fecha de última modificación
    */
   updatedAt: string;
 

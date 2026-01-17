@@ -7,17 +7,16 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { CreatePropertyDto } from '../../models/create-property-dto';
 import { Property } from '../../models/property';
 
-export interface PropertyControllerCreate$Params {
-      body: CreatePropertyDto
+export interface PropertyControllerRestore$Params {
+  id: string;
 }
 
-export function propertyControllerCreate(http: HttpClient, rootUrl: string, params: PropertyControllerCreate$Params, context?: HttpContext): Observable<StrictHttpResponse<Property>> {
-  const rb = new RequestBuilder(rootUrl, propertyControllerCreate.PATH, 'post');
+export function propertyControllerRestore(http: HttpClient, rootUrl: string, params: PropertyControllerRestore$Params, context?: HttpContext): Observable<StrictHttpResponse<Property>> {
+  const rb = new RequestBuilder(rootUrl, propertyControllerRestore.PATH, 'patch');
   if (params) {
-    rb.body(params.body, 'application/json');
+    rb.path('id', params.id, {});
   }
 
   return http.request(
@@ -30,4 +29,4 @@ export function propertyControllerCreate(http: HttpClient, rootUrl: string, para
   );
 }
 
-propertyControllerCreate.PATH = '/properties';
+propertyControllerRestore.PATH = '/properties/{id}/restore';

@@ -13,14 +13,15 @@ export interface ClientProfile {
   company: Company;
 
   /**
-   * Fecha de creación del registro
+   * Fecha de creación
    */
   createdAt: string;
 
   /**
-   * Fecha de eliminación lógica (soft delete)
+   * Sello de auditoría de borrado
    */
-  deletedAt?: string | null;
+  deletedAt?: {
+};
 
   /**
    * Datos fiscales validados (NIF, Razón Social)
@@ -28,7 +29,7 @@ export interface ClientProfile {
   fiscalIdentity: FiscalIdentity;
 
   /**
-   * Identificador único de la entidad
+   * ID único (UUID v4)
    */
   id: string;
 
@@ -38,7 +39,7 @@ export interface ClientProfile {
   internalCode: string;
 
   /**
-   * Indica si el registro está activo
+   * Indicador de visibilidad operativa
    */
   isActive: boolean;
 
@@ -63,7 +64,7 @@ export interface ClientProfile {
   phone?: string;
 
   /**
-   * Fecha de última actualización del registro
+   * Fecha de última modificación
    */
   updatedAt: string;
 

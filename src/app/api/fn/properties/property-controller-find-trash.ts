@@ -7,17 +7,14 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { CreatePropertyDto } from '../../models/create-property-dto';
 import { Property } from '../../models/property';
 
-export interface PropertyControllerCreate$Params {
-      body: CreatePropertyDto
+export interface PropertyControllerFindTrash$Params {
 }
 
-export function propertyControllerCreate(http: HttpClient, rootUrl: string, params: PropertyControllerCreate$Params, context?: HttpContext): Observable<StrictHttpResponse<Property>> {
-  const rb = new RequestBuilder(rootUrl, propertyControllerCreate.PATH, 'post');
+export function propertyControllerFindTrash(http: HttpClient, rootUrl: string, params?: PropertyControllerFindTrash$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<Property>>> {
+  const rb = new RequestBuilder(rootUrl, propertyControllerFindTrash.PATH, 'get');
   if (params) {
-    rb.body(params.body, 'application/json');
   }
 
   return http.request(
@@ -25,9 +22,9 @@ export function propertyControllerCreate(http: HttpClient, rootUrl: string, para
   ).pipe(
     filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
     map((r: HttpResponse<any>) => {
-      return r as StrictHttpResponse<Property>;
+      return r as StrictHttpResponse<Array<Property>>;
     })
   );
 }
 
-propertyControllerCreate.PATH = '/properties';
+propertyControllerFindTrash.PATH = '/properties/trash';
