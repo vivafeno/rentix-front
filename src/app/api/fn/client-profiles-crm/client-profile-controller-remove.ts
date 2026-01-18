@@ -28,4 +28,4 @@ export function clientProfileControllerRemove(http: HttpClient, rootUrl: string,
   );
 }
 
-clientProfileControllerRemove.PATH = '/client-profiles/{id}';
+clientProfileControllerRemove.PATH = '/tenant-profiles/{id}';

@@ -30,4 +30,4 @@ export function taxControllerCreate(http: HttpClient, rootUrl: string, params: T
   );
 }
 
-taxControllerCreate.PATH = '/tax';
+taxControllerCreate.PATH = '/taxes';

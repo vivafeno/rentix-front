@@ -1,16 +1,17 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
-
-// Servicios y Configuración
+import { Router } from '@angular/router';
 import { SessionService } from '../../../core/services/session.service';
-import { ApiConfiguration } from '../../../api/api-configuration';
-
-// Función de la API generada
-import { authControllerLogin } from '../../../api/fn/auth/auth-controller-login';
+import { ApiService } from '../../../core/api/api.service';
 import { LoginDto } from '../../../api/models/login-dto';
 
+/**
+ * @description Componente de autenticación de usuario (Blueprint 2026).
+ * Implementa enrutamiento inteligente basado en AppRole para evitar bloqueos de contexto.
+ * * @author Gemini Blueprint 2026
+ * @version 1.5.0
+ */
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -18,45 +19,72 @@ import { LoginDto } from '../../../api/models/login-dto';
   templateUrl: './login.html'
 })
 export class LoginComponent {
-  // Inyecciones
-  private fb = inject(FormBuilder);
-  private http = inject(HttpClient);
-  private config = inject(ApiConfiguration);
-  private session = inject(SessionService);
+  private readonly fb = inject(FormBuilder);
+  private readonly api = inject(ApiService);
+  private readonly session = inject(SessionService);
+  private readonly router = inject(Router);
 
-  // Estado visual
-  isLoading = signal(false);
-  errorMessage = signal<string | null>(null);
+  // --- SIGNALS DE ESTADO ---
+  readonly isLoading = this.session.isLoading;
+  readonly errorMessage = signal<string | null>(null);
 
-  // Formulario Reactivo
-  form = this.fb.group({
+  readonly form = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]]
   });
 
-  onSubmit() {
-    if (this.form.invalid) return;
+  /**
+   * @description Procesa el intento de login.
+   * Tras el éxito, bifurca la navegación: ADMIN -> Dashboard / USER -> Selector.
+   */
+  async onSubmit(): Promise<void> {
+    if (this.form.invalid || this.isLoading()) return;
 
-    this.isLoading.set(true);
     this.errorMessage.set(null);
 
-    const loginData: LoginDto = {
-      email: this.form.value.email!,
-      password: this.form.value.password!
-    };
+    try {
+      // 1. Llamada al API
+      const response = await this.api.post<{ accessToken: string; refreshToken: string }>(
+        '/auth/login', 
+        this.form.value as LoginDto
+      );
 
-    // Llamada a la API usando la función generada (Tree-shakable)
-    authControllerLogin(this.http, this.config.rootUrl, { body: loginData })
-      .subscribe({
-        next: (response) => {
-          // Éxito: Delegamos en el SessionService para guardar tokens y redirigir
-          this.session.loginSuccess(response.body.accessToken, response.body.refreshToken);
-        },
-        error: (err) => {
-          console.error(err);
-          this.isLoading.set(false);
-          this.errorMessage.set('Credenciales incorrectas o error en el servidor.');
+      if (response.accessToken) {
+        // 2. Persistencia y carga de perfil en el SessionService
+        // Es vital que loginSuccess devuelva o actualice los datos del usuario antes de navegar
+        await this.session.loginSuccess(
+          response.accessToken, 
+          response.refreshToken
+        );
+
+        // 3. ENRUTAMIENTO INTELIGENTE (Solución al bloqueo del ADMIN)
+        const user = this.session.user();
+        const isPlatformAdmin = user?.appRole === 'SUPERADMIN' || user?.appRole === 'ADMIN';
+
+        if (isPlatformAdmin) {
+          /** @description Delegados técnicos: Bypass del selector de empresa */
+          await this.router.navigate(['/app/dashboard']);
+        } else {
+          /** @description Roles patrimoniales: Obligados a elegir contexto */
+          await this.router.navigate(['/select-company']);
         }
-      });
+      }
+    } catch (err: any) {
+      this.handleError(err);
+    }
+  }
+
+  /**
+   * @description Centraliza la gestión de errores de UI.
+   */
+  private handleError(err: any): void {
+    console.error('❌ [Login]: Fallo de autenticación', err);
+    const status = err.status || err.statusCode;
+    
+    if (status === 401) {
+      this.errorMessage.set('Credenciales incorrectas.');
+    } else {
+      this.errorMessage.set('Error de conexión con el servidor de Rentix.');
+    }
   }
 }

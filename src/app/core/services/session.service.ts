@@ -1,194 +1,183 @@
-import { Injectable, computed, inject, signal, effect } from '@angular/core';
+import { Injectable, computed, inject, Signal, signal, effect } from '@angular/core';
 import { Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
-import { ApiConfiguration } from '../../api/api-configuration';
+import { injectQuery, QueryClient } from '@tanstack/angular-query-experimental';
 
-// --- MODELOS ---
-import { MeDto, CompanyMeDto } from '../../api/models';
+import { ApiService } from '../api/api.service';
+import { MeDto } from '../../api/models';
 
-// --- FUNCIONES API (OpenAPI) ---
-import { userControllerGetMe } from '../../api/fn/users/user-controller-get-me';
-import { companyControllerGetMyCompanies } from '../../api/fn/companies/company-controller-get-my-companies';
-import { companyContextControllerSelectCompany } from '../../api/fn/context/company-context-controller-select-company';
-
+/**
+ * @description Servicio central de gestión de sesión, contexto patrimonial y preferencias visuales (Blueprint 2026).
+ * Actúa como la "Single Source of Truth" para el estado del usuario, la empresa activa y el tema de la UI.
+ * Implementa arquitectura Zoneless mediante Signals y gestión de caché con TanStack Query.
+ * @author Gemini / Rentix Team
+ * @version 1.3.0
+ */
 @Injectable({
   providedIn: 'root'
 })
 export class SessionService {
-  private http = inject(HttpClient);
-  private config = inject(ApiConfiguration);
-  private router = inject(Router);
+  /** @description Cliente de API para comunicaciones REST basadas en Fetch nativo. */
+  private readonly api = inject(ApiService);
 
-  // --------------------------------------------------------------------------------
-  // ESTADO (Signals Privados)
-  // --------------------------------------------------------------------------------
-  private _user = signal<MeDto | null>(null);
-  private _companies = signal<CompanyMeDto[]>([]);
-  private _selectedCompanyId = signal<string | null>(localStorage.getItem('selected_company_id'));
+  /** @description Motor de navegación de Angular para redirecciones de flujo. */
+  private readonly router = inject(Router);
 
-  // 🚨 SEMÁFORO DE CARGA (Vital para F5)
-  // Si hay token al iniciar, nacemos en estado "cargando" para bloquear redirecciones
-  public isLoading = signal<boolean>(!!localStorage.getItem('access_token'));
+  /** @description Gestor de caché y estado de TanStack Query mediante inyección nativa. */
+  private readonly queryClient = inject(QueryClient);
 
-  // --------------------------------------------------------------------------------
-  // LECTURA (Signals Públicos & Computados)
-  // --------------------------------------------------------------------------------
+  // --- ESTADO VISUAL (Dark Mode) ---
 
-  readonly user = this._user.asReadonly();
-  readonly companies = this._companies.asReadonly();
-  readonly companyId = this._selectedCompanyId.asReadonly();
+  /** * @description Signal reactiva que controla el estado del tema oscuro.
+   * Se inicializa leyendo la preferencia persistida en el almacenamiento local.
+   * @type {WritableSignal<boolean>}
+   */
+  readonly darkMode = signal<boolean>(localStorage.getItem('theme') === 'dark');
 
+  // --- ESTADO DECLARATIVO (TanStack Query) ---
+
+  /** * @description Query interna que sincroniza el perfil del usuario autenticado.
+   * Se activa automáticamente si detecta un token de acceso.
+   */
+  private userQuery = injectQuery(() => ({
+    queryKey: ['user-me'],
+    queryFn: () => this.api.get<MeDto>('/users/me'),
+    enabled: !!localStorage.getItem('access_token'),
+    staleTime: Infinity,
+    retry: false
+  }));
+
+  // --- SIGNALS PÚBLICAS (Readonly & Context-Safe) ---
+
+  /** * @description Datos del perfil del usuario actual obtenidos de la caché de TanStack.
+   * @returns {Signal<MeDto | undefined>} Perfil del usuario hidratado.
+   */
+  readonly user = computed(() => this.userQuery.data()) as Signal<MeDto | undefined>;
+
+  /**
+   * @description Estado de carga global de la sesión.
+   * Evita bloqueos en el Login si no existe un token previo.
+   * @returns {Signal<boolean>}
+   */
+  readonly isLoading = computed(() => {
+    const hasToken = !!localStorage.getItem('access_token');
+    if (!hasToken) return false;
+    return this.userQuery.isPending();
+  }) as Signal<boolean>;
+
+  /** * @description Identificador de la empresa seleccionada en el contexto actual.
+   * @returns {Signal<string | null>} UUID de la empresa almacenada.
+   */
+  readonly companyId = computed(() => localStorage.getItem('selected_company_id'));
+
+  /** * @description Lista de roles y empresas asociadas al usuario autenticado.
+   * @returns {Signal<any[]>} Colección de objetos CompanyRole.
+   */
+  readonly companies = computed(() => this.user()?.companyRoles || []);
+
+  /** * @description Datos de la empresa activa en el contexto patrimonial seleccionado.
+   * @returns {Signal<any | null>} Objeto de empresa o null si no hay selección.
+   */
   readonly currentCompany = computed(() =>
-    this._companies().find(c => c.companyId === this._selectedCompanyId()) || null
+    this.companies().find(c => c.companyId === this.companyId()) || null
   );
 
-  readonly currentRole = computed(() =>
-    this.currentCompany()?.role || 'VIEWER'
-  );
+  /** * @description Rol operativo del usuario en la empresa seleccionada (OWNER, TENANT, VIEWER).
+   * @returns {Signal<string>} Nombre del rol o 'VIEWER' por defecto.
+   */
+  readonly currentRole = computed(() => this.currentCompany()?.role || 'VIEWER');
 
-  // --------------------------------------------------------------------------------
-  // 👮 CONSTRUCTOR: EL POLICÍA DE TRÁFICO
-  // --------------------------------------------------------------------------------
+  /**
+   * @constructor
+   * @description Inicializa el servicio y establece el efecto reactivo para el tema visual.
+   */
   constructor() {
-    // 1. AUTO-ARRANQUE (Fuera del effect para que solo ocurra una vez)
-    const token = localStorage.getItem('access_token');
-    if (token) {
-      console.log('🔄 Sesión detectada. Iniciando recarga de datos...');
-      this.refreshSessionData();
-    }
-
-    // 2. EL EFECTO (Vigila la navegación)
+    /** * @description Sincronización automática del DOM y LocalStorage.
+     * Al estar en el constructor, se ejecuta inmediatamente y cada vez que darkMode cambia.
+     */
     effect(() => {
-      // 🚨 BLOQUEO: Si estamos cargando datos, NO redirigimos a ningún lado. Esperamos.
-      if (this.isLoading()) {
-        return;
+      const isDark = this.darkMode();
+      
+      // 1. Sincronizar clase en el elemento raíz para Tailwind v4
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
       }
 
-      const user = this._user();
-      const companies = this._companies();
-
-      // Solo actuamos si el usuario ya ha cargado
-      if (user) {
-        const currentUrl = this.router.url;
-
-        // CASO: Usuario sin empresas
-        if (companies.length === 0) {
-          // Excepciones para no molestar si está creando empresa o en login
-          if (!currentUrl.includes('create-company') &&
-            !currentUrl.includes('login') &&
-            !currentUrl.includes('select-company')) {
-
-            console.log('🔀 Redirigiendo a selección (Usuario sin empresas)');
-            this.router.navigate(['/select-company']);
-          }
-        }
-      }
+      // 2. Persistir preferencia
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
     });
   }
 
-  // --------------------------------------------------------------------------------
-  // MÉTODOS DE GESTIÓN DE SESIÓN
-  // --------------------------------------------------------------------------------
+  // --- MÉTODOS DE TEMA (Dark Mode) ---
 
-  async loginSuccess(accessToken: string, refreshToken: string) {
+  /**
+   * @description Alterna entre modo claro y oscuro. 
+   * La persistencia y el cambio de clase se gestionan automáticamente vía effect.
+   * @returns {void}
+   */
+  toggleDarkMode(): void {
+    this.darkMode.update(v => !v);
+  }
+
+  // --- GESTIÓN DE FLUJO Y SESIÓN ---
+
+  /**
+   * @description Procesa el éxito del login aplicando jerarquía de roles (Blueprint 2026).
+   * @param {string} accessToken - Token JWT de acceso.
+   * @param {string} refreshToken - Token de refresco.
+   */
+  async loginSuccess(accessToken: string, refreshToken: string): Promise<void> {
     localStorage.setItem('access_token', accessToken);
     localStorage.setItem('refresh_token', refreshToken);
 
-    // Activamos semáforo antes de pedir datos
-    this.isLoading.set(true);
-    await this.refreshSessionData();
-
-    // Capturamos el estado actual
-    const companies = this._companies();
-    const currentId = this._selectedCompanyId();
-    const currentCompany = this.currentCompany();
-
-    // Lógica de redirección
-    if (companies.length === 0) {
-      this.router.navigate(['/select-company']);
-    }
-    else if (currentId && currentCompany) {
-      this.router.navigate(['/app/dashboard']);
-    }
-    else {
-      this.router.navigate(['/select-company']);
-    }
-  }
-
-  async refreshSessionData() {
     try {
-      this.isLoading.set(true); // Aseguramos bloqueo
+      const userData = await this.queryClient.fetchQuery({
+        queryKey: ['user-me'],
+        queryFn: () => this.api.get<MeDto>('/users/me'),
+      });
 
-      const pUser = firstValueFrom(userControllerGetMe(this.http, this.config.rootUrl));
-      const pCompanies = firstValueFrom(companyControllerGetMyCompanies(this.http, this.config.rootUrl));
+      const isPrivileged = userData.appRole === 'SUPERADMIN' || userData.appRole === 'ADMIN';
+      const userCompanies = userData.companyRoles || [];
 
-      const [userResponse, companiesResponse] = await Promise.all([pUser, pCompanies]);
-
-      this._user.set(userResponse.body);
-      this._companies.set(companiesResponse.body);
-
-      const currentId = this._selectedCompanyId();
-      if (currentId && !companiesResponse.body.some(c => c.companyId === currentId)) {
-        this._selectedCompanyId.set(null);
-        localStorage.removeItem('selected_company_id');
+      if (isPrivileged) {
+        await this.router.navigateByUrl('/app/dashboard');
+      } else if (userCompanies.length === 0) {
+        await this.router.navigateByUrl('/create-company');
+      } else if (userCompanies.length === 1) {
+        await this.selectCompany(userCompanies[0].companyId);
+      } else {
+        await this.router.navigateByUrl('/select-company');
       }
-
-      console.log('✅ Datos recargados OK');
-
-    } catch (error) {
-      console.error('❌ Error cargando datos de sesión', error);
+    } catch (err) {
       this.logout();
-    } finally {
-      // 🚨 IMPORTANTE: Apagamos el semáforo pase lo que pase para liberar la UI
-      this.isLoading.set(false);
     }
   }
 
-// src/app/core/services/session.service.ts
-
-async selectCompany(companyId: string) {
-  try {
-    this.isLoading.set(true);
-
-    const response: any = await firstValueFrom(
-      this.http.post(`${this.config.rootUrl}/context/select-company`, { companyId })
-    );
-
-    // 🚨 CLAVE 1: Extraer el accessToken de la respuesta
-    const newToken = response.accessToken;
-
-    if (newToken) {
-      // 🚨 CLAVE 2: Sobrescribir el token en el storage
-      localStorage.setItem('access_token', newToken);
-      localStorage.setItem('selected_company_id', companyId);
-      
-      this._selectedCompanyId.set(companyId);
-
-      // 🚨 CLAVE 3: Forzar recarga de datos. 
-      // Esto hará que el SessionService lea el NUEVO token y actualice el currentRole
-      await this.refreshSessionData();
-      
-      console.log('✅ Contexto de empresa activado en el Token');
-      this.router.navigate(['/app/dashboard']);
+  /**
+   * @description Establece el contexto patrimonial (Empresa) activo mediante intercambio de tokens.
+   * @param {string} companyId - Identificador único de la empresa.
+   */
+  async selectCompany(companyId: string): Promise<void> {
+    try {
+      const res = await this.api.post<any>('/context/select-company', { companyId });
+      if (res?.accessToken) {
+        localStorage.setItem('access_token', res.accessToken);
+        localStorage.setItem('selected_company_id', companyId);
+        window.location.href = '/app/dashboard'; 
+      }
+    } catch (err) {
+      console.error('❌ [Session] Error selectCompany:', err);
+      await this.router.navigateByUrl('/select-company');
     }
-  } catch (error) {
-    console.error('❌ Error seleccionando empresa:', error);
-  } finally {
-    this.isLoading.set(false);
   }
-}
 
-  logout() {
-    this._user.set(null);
-    this._companies.set([]);
-    this._selectedCompanyId.set(null);
-    this.isLoading.set(false); // Liberamos semáforo
-
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('selected_company_id');
-
-    this.router.navigate(['/login']);
+  /**
+   * @description Cierra la sesión de forma atómica, limpiando almacenamiento y caché de queries.
+   */
+  logout(): void {
+    localStorage.clear();
+    this.queryClient.clear();
+    window.location.href = '/login';
   }
 }

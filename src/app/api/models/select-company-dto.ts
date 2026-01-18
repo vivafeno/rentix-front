@@ -4,7 +4,7 @@
 export interface SelectCompanyDto {
 
   /**
-   * UUID de la empresa que el usuario quiere activar como compañía actual en sesión
+   * UUID de la empresa a la que se desea cambiar el contexto
    */
   companyId: string;
 }

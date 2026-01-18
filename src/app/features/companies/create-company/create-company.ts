@@ -1,176 +1,189 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
 
-import { ApiConfiguration } from '../../../api/api-configuration';
+import { ApiService } from '../../../core/api/api.service';
 import { SessionService } from '../../../core/services/session.service';
+import { LegalWizardService } from '../../../core/services/legal-wizard.service';
 
-// --- CONTROLADORES API ---
-import { userControllerFindAll } from '../../../api/fn/users/user-controller-find-all';
-import { userControllerCreate } from '../../../api/fn/users/user-controller-create';
-import { addressControllerCreateDraft } from '../../../api/fn/addresses/address-controller-create-draft';
-import { fiscalIdentityControllerCreate } from '../../../api/fn/fiscal-identities/fiscal-identity-controller-create';
-import { companyControllerCreate } from '../../../api/fn/companies/company-controller-create';
+// Modelos del Contrato OpenAPI
+import { User, CreateCompanyLegalDto } from '../../../api/models';
 
-// --- MODELOS ---
-import { User } from '../../../api/models/user';
-import { CreateCompanyDto } from '../../../api/models/create-company-dto';
-
+/**
+ * @description Wizard de Alta de Patrimonio (Blueprint 2026).
+ * Implementa creación atómica (User + Company + Address + Fiscal) en una única transacción.
+ * Arquitectura Zoneless y comunicación vía Fetch nativo.
+ */
 @Component({
   selector: 'app-create-company',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './create-company.html'
 })
-export class CreateCompanyComponent implements OnInit {
-  private fb = inject(FormBuilder);
-  private http = inject(HttpClient);
-  private config = inject(ApiConfiguration);
-  private router = inject(Router);
-  private session = inject(SessionService);
+export class CreateCompanyComponent {
+  private readonly fb = inject(FormBuilder);
+  private readonly api = inject(ApiService);
+  private readonly router = inject(Router);
+  private readonly session = inject(SessionService);
+  public readonly wizardService = inject(LegalWizardService);
 
-  // Estados de control del Wizard
-  currentStep = signal(1);
-  isLoading = signal(false);
-  errorMessage = signal<string | null>(null);
+  // --- SIGNALS DE ESTADO ---
+  readonly currentStep = signal<number>(1);
+  readonly isLoading = signal<boolean>(false);
+  readonly errorMessage = signal<string | null>(null);
+  readonly availableUsers = signal<User[]>([]);
+  readonly userMode = signal<'existing' | 'new'>('existing');
 
-  // IDs recolectados
-  selectedUserId = signal<string | null>(null);
-  createdAddressId = signal<string | null>(null);
-  createdFiscalId = signal<string | null>(null);
-
-  summaryData = signal({ userEmail: '', address: '', taxName: '' });
-
-  // PASO 1: Formulario ajustado al CreateUserDto (Sin nombres para evitar Error 400)
-  userMode = signal<'existing' | 'new'>('existing');
-  availableUsers = signal<User[]>([]);
-
-  newUserForm = this.fb.group({
+  // --- FORMULARIOS REACTIVOS ---
+  readonly newUserForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['Temp1234!', [Validators.required, Validators.minLength(6)]]
   });
 
-  addressForm = this.fb.group({
+  readonly addressForm = this.fb.group({
     addressLine1: ['', Validators.required],
     city: ['', Validators.required],
     zipCode: ['', Validators.required],
     country: ['ES', Validators.required]
   });
 
-  fiscalForm = this.fb.group({
+  readonly fiscalForm = this.fb.group({
     taxName: ['', [Validators.required, Validators.minLength(3)]],
     taxId: ['', [Validators.required, Validators.minLength(8)]]
   });
 
-  confirmationForm = this.fb.group({
+  readonly confirmationForm = this.fb.group({
     acceptTerms: [false, Validators.requiredTrue]
   });
 
-  ngOnInit() {
+  constructor() {
     this.loadUsers();
   }
 
-  async loadUsers() {
+/**
+ * @description Carga usuarios con rol USER.
+ * Ajustado a la firma del ApiService (1 solo argumento para GET con query params en string).
+ */
+private async loadUsers(): Promise<void> {
+  try {
+    // Usamos Template Strings para los parámetros de búsqueda
+    const users = await this.api.get<User[]>('/users?take=1000');
+    this.availableUsers.set(users.filter(u => u.appRole === 'USER'));
+  } catch (err) {
+    this.errorMessage.set('Error al sincronizar lista de responsables.');
+  }
+}
+
+  /**
+   * @description PASO 1: Identificación o creación del usuario responsable.
+   */
+  async submitStep1(): Promise<void> {
+    this.isLoading.set(true);
+    this.errorMessage.set(null);
+
     try {
-      const response = await firstValueFrom(userControllerFindAll(this.http, this.config.rootUrl, { take: 1000 }));
-      const body = (response as any).body || response;
-      this.availableUsers.set(Array.isArray(body) ? body : body.data || []);
-    } catch (err) {
-      console.error('Error cargando usuarios', err);
+      let finalUserId: string;
+
+      if (this.userMode() === 'existing') {
+        finalUserId = this.wizardService.wizardData().company?.userId || '';
+        if (!finalUserId) throw new Error('Selecciona un responsable.');
+      } else {
+        if (this.newUserForm.invalid) throw new Error('Datos de usuario incompletos.');
+        const newUser = await this.api.post<User>('/users', { 
+          ...this.newUserForm.value, 
+          appRole: 'USER' 
+        });
+        finalUserId = newUser.id!;
+      }
+
+      this.wizardService.updateSection('company', { userId: finalUserId });
+      this.currentStep.set(2);
+    } catch (err: any) {
+      this.errorMessage.set(err.message || 'Error en identificación.');
+    } finally {
+      this.isLoading.set(false);
     }
   }
 
-  async submitStep1() {
+  /** @description PASO 2: Datos de ubicación física. */
+  submitStep2(): void {
+    if (this.addressForm.invalid) return;
+    
+    this.wizardService.updateSection('address', {
+      addressLine1: this.addressForm.value.addressLine1!,
+      city: this.addressForm.value.city!,
+      postalCode: this.addressForm.value.zipCode!,
+      countryCode: 'ESP',
+      type: 'FISCAL',
+      isDefault: true
+    });
+    this.currentStep.set(3);
+  }
+
+  /** @description PASO 3: Datos legales y fiscales. */
+  submitStep3(): void {
+    if (this.fiscalForm.invalid) return;
+
+    this.wizardService.updateSection('fiscal', {
+      corporateName: this.fiscalForm.value.taxName!,
+      taxId: this.fiscalForm.value.taxId!,
+      personType: 'J',
+      taxIdType: '01'
+    });
+    this.currentStep.set(4);
+  }
+
+  /**
+   * @description PASO 4: Ejecución atómica de la transacción.
+   * Blueprint 2026: Todo o nada. Si falla la creación de la dirección, no se crea la empresa.
+   */
+  async submitStep4(): Promise<void> {
+    if (this.confirmationForm.invalid || this.isLoading()) return;
+
     this.isLoading.set(true);
     this.errorMessage.set(null);
-    try {
-      if (this.userMode() === 'existing') {
-        if (!this.selectedUserId()) throw new Error('Selecciona un usuario');
-        const user = this.availableUsers().find(u => u.id === this.selectedUserId());
-        this.summaryData.update(s => ({ ...s, userEmail: user?.email || '' }));
-      } else {
-        if (this.newUserForm.invalid) return;
-        // Payload limpio para el DTO del Backend
-        const payload = {
-          email: this.newUserForm.value.email,
-          password: this.newUserForm.value.password,
-          appRole: 'USER'
-        };
-        const res = await firstValueFrom(userControllerCreate(this.http, this.config.rootUrl, { body: payload as any }));
-        const newUser = (res as any).body || res;
-        this.selectedUserId.set(newUser.id);
-        this.summaryData.update(s => ({ ...s, userEmail: newUser.email }));
-      }
-      this.currentStep.set(2);
-    } catch (err: any) {
-      this.errorMessage.set(err.error?.message || 'Error en el Paso 1');
-    } finally { this.isLoading.set(false); }
-  }
 
-  async submitStep2() {
-    if (this.addressForm.invalid) return;
-    this.isLoading.set(true);
     try {
-      const dto = {
-        type: 'FISCAL',
-        addressLine1: this.addressForm.value.addressLine1!,
-        city: this.addressForm.value.city!,
-        postalCode: this.addressForm.value.zipCode!,
-        countryCode: this.addressForm.value.country!
+      const draft = this.wizardService.wizardData();
+      const finalUserId = draft.company?.userId;
+
+      const payload: CreateCompanyLegalDto = {
+        userId: finalUserId!,
+        company: { userId: finalUserId } as any,
+        address: { ...draft.address, countryCode: 'ESP' } as any,
+        fiscal: { ...draft.fiscal, countryCode: 'ESP' } as any
       };
-      const res = await firstValueFrom(addressControllerCreateDraft(this.http, this.config.rootUrl, { body: dto as any }));
-      const body = (res as any).body || res;
-      this.createdAddressId.set(body.id);
-      this.summaryData.update(s => ({ ...s, address: `${dto.addressLine1}, ${dto.city}` }));
-      this.currentStep.set(3);
+
+      // 1. Llamada atómica al backend
+      const result = await this.api.post<{ id: string }>('/companies/owner', payload);
+
+      // 2. Limpieza de wizard y cambio de contexto
+      this.wizardService.reset();
+      
+      // 🚩 IMPORTANTE: Usamos selectCompany para obtener el nuevo JWT con los permisos de la nueva empresa
+      await this.session.selectCompany(result.id);
+
     } catch (err: any) {
-      this.errorMessage.set(err.error?.message || 'Error en el Paso 2');
-    } finally { this.isLoading.set(false); }
+      const msg = err.error?.message || 'Error en la transacción legal.';
+      this.errorMessage.set(Array.isArray(msg) ? msg[0] : msg);
+    } finally {
+      this.isLoading.set(false);
+    }
   }
 
-  async submitStep3() {
-    if (this.fiscalForm.invalid) return;
-    this.isLoading.set(true);
-    try {
-      const dto = {
-        personType: 'LegalEntity',
-        taxIdType: '01',
-        corporateName: this.fiscalForm.value.taxName!,
-        taxId: this.fiscalForm.value.taxId!
-      };
-      const res = await firstValueFrom(fiscalIdentityControllerCreate(this.http, this.config.rootUrl, { body: dto as any }));
-      const body = (res as any).body || res;
-      this.createdFiscalId.set(body.id);
-      this.summaryData.update(s => ({ ...s, taxName: dto.corporateName }));
-      this.currentStep.set(4);
-    } catch (err: any) {
-      this.errorMessage.set(err.error?.message || 'Error en el Paso 3');
-    } finally { this.isLoading.set(false); }
+  // --- MÉTODOS AUXILIARES ---
+
+  setUserMode(mode: 'existing' | 'new'): void {
+    this.userMode.set(mode);
   }
 
-  async submitStep4() {
-    if (this.confirmationForm.invalid) return;
-    this.isLoading.set(true);
-    try {
-      const dto: CreateCompanyDto = {
-        userId: this.selectedUserId()!,
-        fiscalAddressId: this.createdAddressId()!,
-        facturaePartyId: this.createdFiscalId()!
-      };
-      await firstValueFrom(companyControllerCreate(this.http, this.config.rootUrl, { body: dto }));
-      await this.session.refreshSessionData();
-      this.router.navigate(['/select-company']);
-    } catch (err: any) {
-      this.errorMessage.set(err.error?.message || 'Error Final');
-    } finally { this.isLoading.set(false); }
+  onUserSelect(event: Event): void {
+    const id = (event.target as HTMLSelectElement).value;
+    this.wizardService.updateSection('company', { userId: id });
   }
 
-  setUserMode(mode: 'existing' | 'new') { this.userMode.set(mode); this.errorMessage.set(null); }
-  onUserSelect(event: Event) { this.selectedUserId.set((event.target as HTMLSelectElement).value || null); }
-  goBack() { if (this.currentStep() > 1) this.currentStep.update(v => v - 1); }
-} 
-
- 
+  goBack(): void {
+    if (this.currentStep() > 1) this.currentStep.update(v => v - 1);
+  }
+}

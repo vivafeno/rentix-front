@@ -1,204 +1,159 @@
-<div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+<div class="min-h-screen bg-slate-50 p-6 lg:p-12">
+  <div class="mx-auto max-w-4xl">
 
-  <div class="sm:mx-auto sm:w-full sm:max-w-md">
-    <h2 class="text-center text-3xl font-bold tracking-tight text-gray-900">
-      Alta de Nueva Empresa
-    </h2>
-    <p class="mt-2 text-center text-sm text-gray-600">
-      Paso {{ currentStep() }} de 4: {{
-      currentStep() === 1 ? 'Usuario Administrador' :
-      currentStep() === 2 ? 'Domicilio Fiscal' :
-      currentStep() === 3 ? 'Datos Facturae' : 'Confirmación Final'
-      }}
-    </p>
-  </div>
+    <div class="mb-8 text-center">
+      <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Alta de Patrimonio Legal</h1>
+      <p class="mt-2 text-slate-600">Completa la infraestructura de tu empresa en una sola operación atómica.</p>
+    </div>
 
-  <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-    <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-
-      <div class="mb-8 w-full bg-gray-200 rounded-full h-2.5">
-        <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-500"
-          [style.width]="(currentStep() / 4) * 100 + '%'"></div>
+    <div class="mb-12 flex items-center justify-between">
+      @for (step of [1,2,3,4]; track step) {
+      <div class="flex items-center">
+        <div [class]="currentStep() >= step 
+            ? 'flex h-10 w-10 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg shadow-indigo-200' 
+            : 'flex h-10 w-10 items-center justify-center rounded-full bg-white border-2 border-slate-200 text-slate-400'">
+          {{ step }}
+        </div>
+        @if (step < 4) { 
+          <div class="h-1 w-12 sm:w-24 mx-2 rounded bg-slate-200" [class.bg-indigo-600]="currentStep() > step"></div>
+        }
       </div>
+      }
+    </div>
+
+    <div class="rounded-2xl bg-white p-8 shadow-sm border border-slate-100">
 
       @if (errorMessage()) {
-      <div class="mb-6 p-4 rounded-md bg-red-50 border border-red-200 flex items-start animate-fade-in">
-        <span class="text-red-500 mr-2 text-xl">⚠️</span>
-        <span class="text-sm text-red-700 break-words pt-0.5">{{ errorMessage() }}</span>
+      <div class="mb-6 rounded-lg bg-red-50 p-4 text-sm text-red-700 border border-red-100 animate-in fade-in duration-300">
+        {{ errorMessage() }}
       </div>
       }
 
       @if (currentStep() === 1) {
-      <div class="flex border-b border-gray-200 mb-6">
-        <button (click)="setUserMode('existing')"
-          [class]="userMode() === 'existing' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
-          class="w-1/2 py-3 px-1 text-center border-b-2 font-medium text-sm transition-colors focus:outline-none">
-          Usuario Existente
-        </button>
-        <button (click)="setUserMode('new')"
-          [class]="userMode() === 'new' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
-          class="w-1/2 py-3 px-1 text-center border-b-2 font-medium text-sm transition-colors focus:outline-none">
-          Nuevo Usuario
-        </button>
-      </div>
-
-      @if (userMode() === 'existing') {
-      <div class="space-y-6 animate-fade-in">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Seleccionar Administrador (Owner)</label>
-          <select (change)="onUserSelect($event)"
-            class="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm border h-10 bg-white">
-            <option value="">-- Selecciona un usuario --</option>
-            @for (user of availableUsers(); track user.id) {
-            <option [value]="user.id">
-              {{ user.firstName }} {{ user.lastName }} ({{ user.email }})
-            </option>
-            }
-          </select>
+      <div class="space-y-6 animate-in fade-in duration-500">
+        <h2 class="text-xl font-semibold text-slate-800">1. Usuario Responsable (Owner)</h2>
+        
+        <div class="flex p-1 bg-slate-100 rounded-xl mb-6 border border-slate-200">
+          <button (click)="setUserMode('existing')" 
+                  [class.bg-white]="userMode() === 'existing'"
+                  [class.shadow-sm]="userMode() === 'existing'"
+                  class="flex-1 py-2.5 text-sm font-bold rounded-lg transition-all cursor-pointer">
+            Seleccionar existente
+          </button>
+          <button (click)="setUserMode('new')" 
+                  [class.bg-white]="userMode() === 'new'"
+                  [class.shadow-sm]="userMode() === 'new'"
+                  class="flex-1 py-2.5 text-sm font-bold rounded-lg transition-all cursor-pointer">
+            Crear nuevo usuario
+          </button>
         </div>
-        <button (click)="submitStep1()" [disabled]="!selectedUserId() || isLoading()"
-          class="w-full flex justify-center rounded-md border border-transparent bg-blue-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 disabled:opacity-50">
-          {{ isLoading() ? 'Procesando...' : 'Siguiente: Dirección >' }}
-        </button>
-      </div>
-      }
 
+        @if (userMode() === 'existing') {
+        <div class="grid gap-4 animate-in slide-in-from-left-2 duration-300">
+          <label class="block">
+            <span class="text-sm font-medium text-slate-700">Usuarios Disponibles</span>
+            <select (change)="onUserSelect($event)"
+              class="mt-1 block w-full rounded-lg border-slate-200 bg-slate-50 p-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-hidden">
+              <option value="">Selecciona un usuario...</option>
+              @for (user of availableUsers(); track user.id) {
+              <option [value]="user.id">{{ user.email }}</option>
+              }
+            </select>
+          </label>
+        </div>
+        }
 
-      @if (userMode() === 'new') {
-      <form [formGroup]="newUserForm" (ngSubmit)="submitStep1()" class="space-y-4 animate-fade-in">
-
-        <div class="grid grid-cols-2 gap-4">
+        @if (userMode() === 'new') {
+        <form [formGroup]="newUserForm" class="space-y-4 animate-in slide-in-from-right-2 duration-300">
           <div>
-            <label class="block text-sm font-medium text-gray-700">Nombre</label>
-            <input type="text" formControlName="firstName" placeholder="Nombre"
-              class="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 border shadow-sm sm:text-sm">
+            <label class="text-sm font-medium text-slate-700">Correo electrónico</label>
+            <input formControlName="email" type="email" placeholder="ejemplo@rentix.com"
+              class="mt-1 block w-full rounded-lg border-slate-200 p-3 outline-hidden focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20" />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">Apellidos</label>
-            <input type="text" formControlName="lastName" placeholder="Apellidos"
-              class="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 border shadow-sm sm:text-sm">
+            <label class="text-sm font-medium text-slate-700">Contraseña temporal</label>
+            <input formControlName="password" type="password"
+              class="mt-1 block w-full rounded-lg border-slate-200 p-3 outline-hidden focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20" />
           </div>
-        </div>
+        </form>
+        }
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Email</label>
-          <input type="email" formControlName="email" placeholder="email@ejemplo.com"
-            class="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 border shadow-sm sm:text-sm">
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Contraseña</label>
-          <input type="password" formControlName="password" placeholder="********"
-            class="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 border shadow-sm sm:text-sm">
-        </div>
-
-        <button type="submit" [disabled]="newUserForm.invalid || isLoading()"
-          class="w-full flex justify-center rounded-md border border-transparent bg-blue-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 disabled:opacity-50">
-          {{ isLoading() ? 'Creando Usuario...' : 'Crear Usuario y Continuar' }}
+        <button (click)="submitStep1()" [disabled]="isLoading()"
+          class="w-full rounded-lg bg-indigo-600 px-6 py-4 font-bold text-white shadow-lg transition hover:bg-indigo-700 active:scale-[0.98] disabled:opacity-50">
+          {{ isLoading() ? 'Procesando...' : 'Confirmar Responsable y Continuar' }}
         </button>
-      </form>
-      }
+      </div>
       }
 
       @if (currentStep() === 2) {
-      <form [formGroup]="addressForm" (ngSubmit)="submitStep2()" class="space-y-6 animate-fade-in">
-        <div class="border-b pb-2 mb-4">
-          <h3 class="text-lg font-medium text-gray-900">Ubicación Sede</h3>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Calle y Número</label>
-          <input type="text" formControlName="addressLine1"
-            class="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 border shadow-sm sm:text-sm">
-        </div>
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Ciudad</label>
-            <input type="text" formControlName="city"
-              class="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 border shadow-sm sm:text-sm">
+      <form [formGroup]="addressForm" class="space-y-6 animate-in fade-in duration-300">
+        <h2 class="text-xl font-semibold text-slate-800">2. Ubicación de la Sede</h2>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div class="sm:col-span-2">
+            <label class="text-sm font-medium">Dirección Fiscal</label>
+            <input formControlName="addressLine1" type="text" placeholder="Calle, número, piso..."
+              class="mt-1 block w-full rounded-lg border-slate-200 p-3 outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">Código Postal</label>
-            <input type="text" formControlName="zipCode"
-              class="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 border shadow-sm sm:text-sm">
+            <label class="text-sm font-medium">Ciudad</label>
+            <input formControlName="city" type="text" class="mt-1 block w-full rounded-lg border-slate-200 p-3 outline-hidden focus:border-indigo-500" />
+          </div>
+          <div>
+            <label class="text-sm font-medium">Código Postal</label>
+            <input formControlName="zipCode" type="text" class="mt-1 block w-full rounded-lg border-slate-200 p-3 outline-hidden focus:border-indigo-500" />
           </div>
         </div>
-        <div class="flex justify-between pt-6 gap-3">
-          <button type="button" (click)="goBack()"
-            class="w-1/3 rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm">
-            Atrás
-          </button>
-          <button type="submit" [disabled]="addressForm.invalid || isLoading()"
-            class="w-2/3 flex justify-center rounded-md bg-blue-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700">
-            Siguiente: Datos Fiscales
-          </button>
+        <div class="flex gap-4">
+          <button type="button" (click)="goBack()" class="w-1/3 rounded-lg border border-slate-200 px-6 py-3 font-medium text-slate-600 hover:bg-slate-50 transition-colors">Atrás</button>
+          <button type="button" (click)="submitStep2()" class="w-2/3 rounded-lg bg-indigo-600 px-6 py-3 font-bold text-white hover:bg-indigo-700 shadow-md">Siguiente: Datos Fiscales</button>
         </div>
       </form>
       }
 
       @if (currentStep() === 3) {
-      <form [formGroup]="fiscalForm" (ngSubmit)="submitStep3()" class="space-y-6 animate-fade-in">
-        <div class="border-b pb-2 mb-4">
-          <h3 class="text-lg font-medium text-gray-900">Identidad Fiscal</h3>
+      <form [formGroup]="fiscalForm" class="space-y-6 animate-in fade-in duration-300">
+        <h2 class="text-xl font-semibold text-slate-800">3. Identidad Fiscal (FacturaE)</h2>
+        <div class="space-y-4">
+          <div>
+            <label class="text-sm font-medium">Razón Social</label>
+            <input formControlName="taxName" type="text" class="mt-1 block w-full rounded-lg border-slate-200 p-3 outline-hidden focus:border-indigo-500" />
+          </div>
+          <div>
+            <label class="text-sm font-medium">NIF / CIF</label>
+            <input formControlName="taxId" type="text" placeholder="Ej: B12345678" class="mt-1 block w-full rounded-lg border-slate-200 p-3 outline-hidden focus:border-indigo-500" />
+          </div>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Razón Social</label>
-          <input type="text" formControlName="taxName"
-            class="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 border shadow-sm sm:text-sm">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700">CIF / NIF</label>
-          <input type="text" formControlName="taxId"
-            class="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 border shadow-sm sm:text-sm uppercase">
-        </div>
-        <div class="flex justify-between pt-6 gap-3">
-          <button type="button" (click)="goBack()"
-            class="w-1/3 rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm">
-            Atrás
-          </button>
-          <button type="submit" [disabled]="fiscalForm.invalid || isLoading()"
-            class="w-2/3 flex justify-center rounded-md bg-blue-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700">
-            Siguiente: Confirmar
-          </button>
+        <div class="flex gap-4">
+          <button type="button" (click)="goBack()" class="w-1/3 rounded-lg border border-slate-200 px-6 py-3 font-medium text-slate-600 hover:bg-slate-50">Atrás</button>
+          <button type="button" (click)="submitStep3()" class="w-2/3 rounded-lg bg-indigo-600 px-6 py-3 font-bold text-white hover:bg-indigo-700 shadow-md">Revisar y Confirmar</button>
         </div>
       </form>
       }
 
       @if (currentStep() === 4) {
-      <form [formGroup]="confirmationForm" (ngSubmit)="submitStep4()" class="space-y-6 animate-fade-in">
-        <div class="bg-gray-50 p-4 rounded-lg border text-sm space-y-3 shadow-inner">
-          <div class="flex justify-between border-b border-gray-200 pb-2">
-            <span class="text-gray-500 font-medium">Administrador:</span>
-            <span class="font-bold text-gray-900">{{ summaryData().userEmail }}</span>
-          </div>
-          <div class="flex justify-between border-b border-gray-200 pb-2">
-            <span class="text-gray-500 font-medium">Entidad Legal:</span>
-            <span class="font-bold text-gray-900">{{ summaryData().taxName }}</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-gray-500 font-medium">Sede Fiscal:</span>
-            <span class="text-gray-900 text-right">{{ summaryData().address }}</span>
-          </div>
+      <div class="space-y-6 animate-in fade-in duration-300">
+        <h2 class="text-xl font-semibold text-slate-800">4. Confirmación de Datos</h2>
+        <div class="rounded-xl bg-slate-50 p-6 space-y-3 text-sm border border-slate-200">
+          <p><strong>Owner (ID):</strong> <span class="text-indigo-600">{{ wizardService.wizardData().company?.userId }}</span></p>
+          <p><strong>Razón Social:</strong> {{ wizardService.wizardData().fiscal?.corporateName }}</p>
+          <p><strong>Dirección:</strong> {{ wizardService.wizardData().address?.addressLine1 }}, {{ wizardService.wizardData().address?.city }}</p>
         </div>
-        <div class="flex items-start bg-blue-50 p-3 rounded-md border border-blue-100">
-          <input formControlName="acceptTerms" type="checkbox"
-            class="h-4 w-4 mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer">
-          <label class="ml-2 text-sm text-gray-700 select-none cursor-pointer">
-            Confirmo que deseo registrar esta empresa y asignar al usuario como OWNER propietario.
+        <form [formGroup]="confirmationForm">
+          <label class="flex items-center gap-3 cursor-pointer group">
+            <input type="checkbox" formControlName="acceptTerms" class="h-5 w-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+            <span class="text-sm text-slate-600 group-hover:text-slate-900 transition-colors">Confirmo que los datos fiscales son veraces y cumplen con VeriFactu.</span>
           </label>
-        </div>
-        <div class="flex justify-between gap-3">
-          <button type="button" (click)="goBack()"
-            class="w-1/3 rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm">
-            Atrás
-          </button>
-          <button type="submit" [disabled]="confirmationForm.invalid || isLoading()"
-            class="w-2/3 flex justify-center rounded-md bg-green-600 py-3 px-4 text-base font-bold text-white shadow-sm hover:bg-green-700 transition-all transform active:scale-95">
-            {{ isLoading() ? 'Procesando...' : '✨ FINALIZAR Y CREAR' }}
+        </form>
+        <div class="flex gap-4">
+          <button type="button" (click)="goBack()" class="w-1/3 rounded-lg border border-slate-200 px-6 py-3 font-medium text-slate-600 hover:bg-slate-50">Atrás</button>
+          <button type="button" (click)="submitStep4()" [disabled]="isLoading() || confirmationForm.invalid"
+            class="w-2/3 rounded-lg bg-green-600 px-6 py-4 font-bold text-white shadow-xl shadow-green-100 transition-all hover:bg-green-700 active:scale-[0.98] disabled:opacity-50">
+            @if (!isLoading()) { <span>🚀 ACTIVAR PATRIMONIO</span> }
+            @else { <span>Ejecutando Transacción Atómica...</span> }
           </button>
         </div>
-      </form>
+      </div>
       }
-
     </div>
   </div>
 </div>

@@ -5,7 +5,15 @@ export interface Address {
   addressLine1: string;
   addressLine2?: string;
   city: string;
+
+  /**
+   * ID del perfil de cliente
+   */
   clientProfileId?: string;
+
+  /**
+   * ID de la empresa (Tenant Isolation)
+   */
   companyId?: string;
   countryCode: string;
 
@@ -13,6 +21,10 @@ export interface Address {
    * Fecha de creación
    */
   createdAt: string;
+
+  /**
+   * Usuario que registró la dirección
+   */
   createdByUserId?: string;
 
   /**
@@ -34,6 +46,15 @@ export interface Address {
   postalCode: string;
   province?: string;
   status: 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
+
+  /**
+   * ID del Arrendatario asociado
+   */
+  tenantId?: string;
+
+  /**
+   * FISCAL, NOTIFICACION, PROPIEDAD, etc.
+   */
   type: 'FISCAL' | 'COMMERCIAL' | 'PROPERTY' | 'OTHER';
 
   /**

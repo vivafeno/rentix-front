@@ -6,7 +6,6 @@ import { map } from 'rxjs/operators';
 
 /**
  * IMPORTACIONES DE FUNCIONES GENERADAS POR OPENAPI
- * Estas funciones encapsulan las llamadas HTTP a los endpoints de NestJS.
  */
 import { propertyControllerFindAll } from '../../api/fn/properties/property-controller-find-all';
 import { propertyControllerFindOne } from '../../api/fn/properties/property-controller-find-one';
@@ -18,32 +17,27 @@ import { propertyControllerRestore } from '../../api/fn/properties/property-cont
 
 import { Property, CreatePropertyDto, UpdatePropertyDto } from '../../api/models';
 
+
 /**
  * Servicio de gestión de Activos Inmobiliarios (Properties).
- * Proporciona métodos para el ciclo de vida completo de un activo: creación, consulta, edición y papelería.
- * * @version 2026.1.0
+ * Proporciona acceso al inventario técnico, métricas de superficie y gestión de ciclo de vida.
+ * * * Estándares Blueprint 2026:
+ * - Comunicación asíncrona mediante Promesas (firstValueFrom).
+ * - Mapeo estricto al cuerpo de la respuesta (Body extraction).
+ * - Soporte para activos técnicos (Superficies, Eficiencia, Amenities).
+ * * @version 2026.1.1
  * @author Rentix Core Team
  */
 @Injectable({
   providedIn: 'root'
 })
 export class PropertyService {
-  /** Cliente HTTP de Angular para la ejecución de peticiones */
   private readonly http = inject(HttpClient);
-  
-  /** Configuración global de la API (Base URL) */
   private readonly config = inject(ApiConfiguration);
 
   /**
-   * NOTA TÉCNICA:
-   * El generador de OpenAPI devuelve objetos del tipo StrictHttpResponse<T>.
-   * Para trabajar directamente con el modelo de dominio (Property), 
-   * aplicamos un operador .pipe(map(r => r.body)) en cada petición.
-   */
-
-  /**
-   * Recupera todos los inmuebles activos vinculados al contexto de la empresa actual.
-   * @returns Una promesa con el listado de activos.
+   * Recupera el catálogo completo de inmuebles operativos.
+   * Ahora incluye métricas de superficie y datos técnicos por defecto.
    */
   async findAll(): Promise<Property[]> {
     return await firstValueFrom(
@@ -54,9 +48,9 @@ export class PropertyService {
   }
 
   /**
-   * Obtiene el expediente detallado de un activo específico.
-   * @param id Identificador único (UUID) del inmueble.
-   * @returns Una promesa con los datos del activo y su dirección anidada.
+   * Obtiene el expediente técnico detallado de un activo.
+   * Útil para vistas de detalle o edición de características físicas.
+   * @param id UUID del activo.
    */
   async findOne(id: string): Promise<Property> {
     return await firstValueFrom(
@@ -67,10 +61,9 @@ export class PropertyService {
   }
 
   /**
-   * Registra una nueva unidad inmobiliaria en el sistema.
-   * Este método dispara la persistencia en cascada de la dirección asociada en el backend.
-   * @param body DTO con los datos del nuevo activo.
-   * @returns El activo recién creado.
+   * Registra un nuevo activo inmobiliario.
+   * Requiere datos de superficie (Total/Útil) y dirección física.
+   * @param body DTO alineado con los requerimientos técnicos del backend.
    */
   async create(body: CreatePropertyDto): Promise<Property> {
     return await firstValueFrom(
@@ -81,10 +74,8 @@ export class PropertyService {
   }
 
   /**
-   * Actualiza los atributos de un activo existente.
-   * @param id Identificador único (UUID) del activo a modificar.
-   * @param body DTO con los campos actualizados.
-   * @returns El activo actualizado tras la persistencia.
+   * Actualiza atributos físicos o técnicos del inmueble.
+   * Soporta actualización parcial (PATCH).
    */
   async update(id: string, body: UpdatePropertyDto): Promise<Property> {
     return await firstValueFrom(
@@ -95,8 +86,7 @@ export class PropertyService {
   }
 
   /**
-   * Recupera el listado de activos que han sido marcados como inactivos (Papelera).
-   * @returns Listado de activos con estado isActive = false.
+   * Recupera activos residentes en la papelera de reciclaje.
    */
   async findTrash(): Promise<Property[]> {
     return await firstValueFrom(
@@ -107,9 +97,7 @@ export class PropertyService {
   }
 
   /**
-   * Revierte el borrado lógico de un activo, devolviéndolo al listado operativo.
-   * @param id Identificador único (UUID) del activo a restaurar.
-   * @returns El activo reactivado.
+   * Revierte el estado de borrado de un inmueble.
    */
   async restore(id: string): Promise<Property> {
     return await firstValueFrom(
@@ -120,10 +108,7 @@ export class PropertyService {
   }
 
   /**
-   * Ejecuta el borrado lógico (desactivación) de un activo.
-   * El activo deja de ser visible en el listado principal pero permanece en base de datos.
-   * @param id Identificador único (UUID) del activo a eliminar.
-   * @returns El activo en su nuevo estado inactivo.
+   * Ejecuta el borrado lógico del activo (Mover a papelera).
    */
   async remove(id: string): Promise<Property> {
     return await firstValueFrom(

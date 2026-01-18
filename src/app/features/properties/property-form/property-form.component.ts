@@ -3,11 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { PropertyService } from '../../../core/services/property.service';
-import { Property, UpdatePropertyDto } from '../../../api/models';
+import { Property, CreatePropertyDto, UpdatePropertyDto } from '../../../api/models';
 
 /**
- * Componente de formulario tipo Drawer para la gestión integral de activos.
- * Implementa persistencia atómica y validación estricta según estándares 2026.
+ * Slider lateral para la gestión integral de activos inmobiliarios.
+ * Incluye todos los campos definidos en el DTO del backend.
  */
 @Component({
   selector: 'app-property-form',
@@ -21,33 +21,32 @@ export class PropertyFormComponent {
 
   @Output() saved = new EventEmitter<void>();
 
-  // --- Estado de UI (Signals) ---
   public isOpen = signal(false);
   public isEdit = signal(false);
   public isLoading = signal(false);
   private currentPropertyId = signal<string | null>(null);
 
   /**
-   * Definición del Formulario Reactivo.
-   * Incluye campos técnicos, económicos y de registro catastral.
+   * Inicialización del formulario con el 100% de campos del DTO.
    */
   public form: FormGroup = this.fb.group({
-    // Información Básica
-    name: ['', [Validators.required, Validators.minLength(3)]],
     internalCode: ['', [Validators.required]],
-    cadastralReference: [''],
     type: ['RESIDENTIAL', [Validators.required]],
     status: ['AVAILABLE', [Validators.required]],
-    
-    // Datos Económicos y Técnicos
-    rentPrice: [null, [Validators.min(0)]],
-    surfaceM2: [null, [Validators.min(0)]],
-    rooms: [null, [Validators.min(0)]],
-    bathrooms: [null, [Validators.min(0)]],
-    floor: [''],
+    cadastralReference: ['', [Validators.maxLength(25)]],
+    surfaceTotal: [0, [Validators.required, Validators.min(1)]],
+    surfaceUseful: [0, [Validators.required, Validators.min(1)]],
+    bedrooms: [0, [Validators.min(0)]],
+    bathrooms: [0, [Validators.min(0)]],
+    constructionYear: [new Date().getFullYear(), [Validators.min(1800), Validators.max(2100)]],
+    orientation: [''],
+    energyRating: ['', [Validators.maxLength(1)]],
+    energyScore: [0],
+    hasElevator: [false],
+    hasParking: [false],
+    hasTerrace: [false],
+    hasStorageRoom: [false],
     description: [''],
-
-    // Localización (Entidad Anidada)
     address: this.fb.group({
       addressLine1: ['', [Validators.required]],
       city: ['', [Validators.required]],
@@ -57,43 +56,22 @@ export class PropertyFormComponent {
     })
   });
 
-  /**
-   * Inicializa el estado del formulario.
-   * @param property Datos del activo para edición.
-   */
   public open(property?: Property): void {
     this.isOpen.set(true);
-
     if (property) {
       this.isEdit.set(true);
       this.currentPropertyId.set(property.id);
-
       this.form.patchValue({
-        name: property.name,
-        internalCode: property.internalCode,
-        cadastralReference: property.cadastralReference,
-        type: property.type,
-        status: property.status,
-        rentPrice: property.rentPrice,
-        surfaceM2: property.surfaceM2,
-        rooms: property.rooms,
-        bathrooms: property.bathrooms,
-        floor: property.floor,
-        description: property.description,
-        address: {
-          addressLine1: property.address?.addressLine1 || '',
-          city: property.address?.city || '',
-          postalCode: property.address?.postalCode || '',
-          province: property.address?.province || 'Valencia',
-          countryCode: property.address?.countryCode || 'ES'
-        }
+        ...property,
+        constructionYear: (property as any).constructionYear || (property as any).buildYear,
+        address: { ...property.address }
       });
     } else {
       this.isEdit.set(false);
       this.currentPropertyId.set(null);
-      this.form.reset({
-        type: 'RESIDENTIAL',
-        status: 'AVAILABLE',
+      this.form.reset({ 
+        type: 'RESIDENTIAL', status: 'AVAILABLE', 
+        constructionYear: new Date().getFullYear(),
         address: { province: 'Valencia', countryCode: 'ES' }
       });
     }
@@ -105,75 +83,42 @@ export class PropertyFormComponent {
   }
 
   /**
-   * Procesa la persistencia de datos.
-   * Realiza el Type Casting necesario para la API de NestJS.
+   * Persistencia total.
    */
   public async save(): Promise<void> {
+    console.log('Validando formulario...', this.form.value);
+
     if (this.form.invalid) {
-      console.warn('⚠️ Errores de validación detectados:', this.getInvalidControls());
       this.form.markAllAsTouched();
       return;
     }
 
     this.isLoading.set(true);
     try {
-      const rawValue = this.form.getRawValue();
-
-      // Mapeo exhaustivo al DTO
-      const dto: UpdatePropertyDto = {
-        name: rawValue.name,
-        internalCode: rawValue.internalCode,
-        cadastralReference: rawValue.cadastralReference,
-        type: rawValue.type,
-        status: rawValue.status,
-        rentPrice: rawValue.rentPrice ? Number(rawValue.rentPrice) : undefined,
-        surfaceM2: rawValue.surfaceM2 ? Number(rawValue.surfaceM2) : undefined,
-        rooms: rawValue.rooms ? Number(rawValue.rooms) : undefined,
-        bathrooms: rawValue.bathrooms ? Number(rawValue.bathrooms) : undefined,
-        floor: rawValue.floor,
-        description: rawValue.description,
-        address: {
-          ...rawValue.address,
-          type: 'PROPERTY'
-        }
+      const raw = this.form.getRawValue();
+      const payload: CreatePropertyDto = {
+        ...raw,
+        surfaceTotal: Number(raw.surfaceTotal),
+        surfaceUseful: Number(raw.surfaceUseful),
+        bedrooms: Number(raw.bedrooms),
+        bathrooms: Number(raw.bathrooms),
+        constructionYear: Number(raw.constructionYear),
+        energyScore: Number(raw.energyScore),
+        address: { ...raw.address, type: 'PROPERTY' as any, status: 'ACTIVE' as any }
       };
 
       if (this.isEdit() && this.currentPropertyId()) {
-        await this.propertyService.update(this.currentPropertyId()!, dto);
+        await this.propertyService.update(this.currentPropertyId()!, payload as UpdatePropertyDto);
       } else {
-        // En una fase posterior activaremos el create:
-        // await this.propertyService.create(dto);
+        await this.propertyService.create(payload);
       }
 
       this.saved.emit();
       this.close();
     } catch (error) {
-      this.handleError(error);
+      console.error('API Error:', error);
     } finally {
       this.isLoading.set(false);
     }
-  }
-
-  /**
-   * Inspección recursiva de controles inválidos para depuración técnica.
-   */
-  private getInvalidControls(): string[] {
-    const invalid: string[] = [];
-    const checkControls = (group: FormGroup, prefix = '') => {
-      Object.keys(group.controls).forEach(key => {
-        const control = group.get(key);
-        if (control instanceof FormGroup) {
-          checkControls(control, `${key}.`);
-        } else if (control?.invalid) {
-          invalid.push(`${prefix}${key}`);
-        }
-      });
-    };
-    checkControls(this.form);
-    return invalid;
-  }
-
-  private handleError(error: any): void {
-    console.error('Property Persistence Failure:', error);
   }
 }

@@ -11,7 +11,7 @@ export interface CreateUserCompanyRoleDto {
   /**
    * Rol del usuario dentro de la empresa
    */
-  role: 'OWNER' | 'ADMIN' | 'MANAGER' | 'VIEWER';
+  role: 'OWNER' | 'TENANT' | 'VIEWER';
 
   /**
    * UUID del usuario al que se asigna el rol

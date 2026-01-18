@@ -29,4 +29,4 @@ export function taxControllerRemove(http: HttpClient, rootUrl: string, params: T
   );
 }
 
-taxControllerRemove.PATH = '/tax/{id}';
+taxControllerRemove.PATH = '/taxes/{id}';

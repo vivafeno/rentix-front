@@ -1,150 +1,196 @@
-<div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[60] transition-opacity duration-300"
+<div (click)="close()"
+     class="fixed inset-0 bg-gray-900/20 backdrop-blur-sm z-[90] transition-opacity duration-500"
      [class.opacity-0]="!isOpen()"
-     [class.pointer-events-none]="!isOpen()"
-     (click)="close()">
+     [class.pointer-events-none]="!isOpen()">
 </div>
 
-<div class="fixed top-0 right-0 h-full w-full max-w-xl bg-white shadow-2xl z-[70] transform transition-transform duration-300 ease-in-out border-l border-gray-100 flex flex-col"
+<div class="fixed top-0 right-0 h-full w-full max-w-lg bg-white shadow-2xl z-[100] transform transition-transform duration-500 ease-in-out flex flex-col"
      [class.translate-x-full]="!isOpen()"
      [class.translate-x-0]="isOpen()">
 
-    <header class="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-        <div>
-            <h2 class="text-xl font-black text-gray-900">{{ isEdit() ? 'Editar Inmueble' : 'Nuevo Inmueble' }}</h2>
-            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">
-                Ficha Técnica de Activo Inmobiliario
-            </p>
-        </div>
-        <button (click)="close()" class="p-2 hover:bg-white rounded-xl transition-colors text-gray-400 hover:text-gray-900 cursor-pointer">
-            ✕
-        </button>
-    </header>
+  <header class="flex items-center justify-between p-8 border-b border-gray-50 bg-white shrink-0">
+    <div>
+      <h2 class="text-2xl font-black text-gray-900 italic uppercase tracking-tight">
+        {{ isEdit() ? 'Editar Activo' : 'Nuevo Activo' }}
+      </h2>
+      <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Expediente Técnico Integral</p>
+    </div>
+    <button type="button" (click)="close()" class="p-2 hover:bg-gray-100 rounded-xl transition-colors cursor-pointer text-gray-400">✕</button>
+  </header>
 
-    <main class="flex-1 overflow-y-auto p-6">
-        <form [formGroup]="form" (ngSubmit)="save()" class="space-y-8">
-            
-            <section class="space-y-4">
-                <h4 class="text-[10px] font-black text-indigo-600 uppercase tracking-tighter border-b border-indigo-50 pb-2">Información General</h4>
-                <div>
-                    <label class="text-[10px] font-black uppercase text-gray-400 mb-1.5 block ml-1">Nombre Descriptivo</label>
-                    <input type="text" formControlName="name" placeholder="Ej: Ático Duplex - Centro Histórico"
-                           class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition-all font-semibold text-gray-700 outline-none">
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-[10px] font-black uppercase text-gray-400 mb-1.5 block ml-1">Ref. Interna</label>
-                        <input type="text" formControlName="internalCode" 
-                               class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-indigo-500 transition-all font-semibold text-gray-700 outline-none">
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-black uppercase text-gray-400 mb-1.5 block ml-1">Ref. Catastral</label>
-                        <input type="text" formControlName="cadastralReference" 
-                               class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-indigo-500 transition-all font-semibold text-gray-700 outline-none">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-[10px] font-black uppercase text-gray-400 mb-1.5 block ml-1">Tipo de Activo</label>
-                        <select formControlName="type" 
-                                class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-indigo-500 transition-all font-semibold text-gray-700 outline-none bg-white">
-                            <option value="RESIDENTIAL">Residencial</option>
-                            <option value="COMMERCIAL">Comercial</option>
-                            <option value="INDUSTRIAL">Industrial</option>
-                            <option value="PARKING">Parking</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-black uppercase text-gray-400 mb-1.5 block ml-1">Estado Operativo</label>
-                        <select formControlName="status" 
-                                class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-indigo-500 transition-all font-semibold text-gray-700 outline-none bg-white">
-                            <option value="AVAILABLE">Disponible</option>
-                            <option value="RENTED">Alquilado</option>
-                            <option value="MAINTENANCE">Mantenimiento</option>
-                            <option value="RESERVED">Reservado</option>
-                        </select>
-                    </div>
-                </div>
-            </section>
-
-            <section class="space-y-4">
-                <h4 class="text-[10px] font-black text-indigo-600 uppercase tracking-tighter border-b border-indigo-50 pb-2">Detalles y Economía</h4>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-[10px] font-black uppercase text-gray-400 mb-1.5 block ml-1">Precio Alquiler (€)</label>
-                        <input type="number" formControlName="rentPrice" 
-                               class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-indigo-500 transition-all font-semibold text-gray-700 outline-none">
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-black uppercase text-gray-400 mb-1.5 block ml-1">Superficie (m²)</label>
-                        <input type="number" formControlName="surfaceM2" 
-                               class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-indigo-500 transition-all font-semibold text-gray-700 outline-none">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-3 gap-4">
-                    <div>
-                        <label class="text-[10px] font-black uppercase text-gray-400 mb-1.5 block ml-1">Hab.</label>
-                        <input type="number" formControlName="rooms" 
-                               class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-indigo-500 transition-all font-semibold text-gray-700 outline-none">
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-black uppercase text-gray-400 mb-1.5 block ml-1">Baños</label>
-                        <input type="number" formControlName="bathrooms" 
-                               class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-indigo-500 transition-all font-semibold text-gray-700 outline-none">
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-black uppercase text-gray-400 mb-1.5 block ml-1">Planta/Piso</label>
-                        <input type="text" formControlName="floor" 
-                               class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-indigo-500 transition-all font-semibold text-gray-700 outline-none">
-                    </div>
-                </div>
-            </section>
-
-            <section formGroupName="address" class="space-y-4">
-                <h4 class="text-[10px] font-black text-indigo-600 uppercase tracking-tighter border-b border-indigo-50 pb-2">Ubicación Geográfica</h4>
-                <div>
-                    <label class="text-[10px] font-black uppercase text-gray-400 mb-1.5 block ml-1">Calle / Avenida / Plaza</label>
-                    <input type="text" formControlName="addressLine1" 
-                           class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-indigo-500 transition-all font-semibold text-gray-700 outline-none">
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-[10px] font-black uppercase text-gray-400 mb-1.5 block ml-1">Ciudad</label>
-                        <input type="text" formControlName="city" 
-                               class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-indigo-500 transition-all font-semibold text-gray-700 outline-none">
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-black uppercase text-gray-400 mb-1.5 block ml-1">C. Postal</label>
-                        <input type="text" formControlName="postalCode" 
-                               class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-indigo-500 transition-all font-semibold text-gray-700 outline-none">
-                    </div>
-                </div>
-            </section>
-
-            <section class="space-y-4">
-                <h4 class="text-[10px] font-black text-indigo-600 uppercase tracking-tighter border-b border-indigo-50 pb-2">Notas Adicionales</h4>
-                <textarea formControlName="description" rows="3" placeholder="Detalles relevantes, equipamiento, mobiliario..."
-                          class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-indigo-500 transition-all font-semibold text-gray-700 outline-none resize-none"></textarea>
-            </section>
-        </form>
-    </main>
-
-    <footer class="p-6 border-t border-gray-100 bg-gray-50/50 grid grid-cols-2 gap-4">
-        <button type="button" (click)="close()" 
-                class="px-6 py-3 rounded-2xl border border-gray-200 font-bold text-gray-500 hover:bg-white transition-all cursor-pointer">
-            Cancelar
-        </button>
-        <button type="button" (click)="save()" [disabled]="isLoading()"
-                class="px-6 py-3 rounded-2xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 shadow-lg transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center">
-            @if (isLoading()) {
-                <span class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></span>
-                Guardando...
-            } @else {
-                {{ isEdit() ? 'Actualizar Activo' : 'Crear Inmueble' }}
+  <div class="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar pb-32">
+    <form [formGroup]="form" id="propertyMasterForm" (ngSubmit)="save()" class="space-y-10">
+      
+      <section class="space-y-4">
+        <h3 class="text-xs font-black uppercase text-indigo-600 border-b border-indigo-50 pb-2 italic">01. Identificación Legal</h3>
+        <div class="grid grid-cols-1 gap-4">
+          <div class="flex flex-col gap-1">
+            <label class="text-[10px] font-black uppercase text-gray-500 ml-1">Código Interno *</label>
+            <input formControlName="internalCode" 
+                   [class.border-red-500]="form.get('internalCode')?.invalid && form.get('internalCode')?.touched"
+                   placeholder="P-00X" 
+                   class="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+            @if (form.get('internalCode')?.invalid && form.get('internalCode')?.touched) {
+              <span class="text-[9px] text-red-500 font-black uppercase ml-1 animate-in fade-in slide-in-from-left-1">Referencia obligatoria</span>
             }
-        </button>
-    </footer>
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-[10px] font-black uppercase text-gray-500 ml-1">Referencia Catastral</label>
+            <input formControlName="cadastralReference" class="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-sm font-bold outline-none uppercase">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1">
+            <label class="text-[10px] font-black uppercase text-gray-500 ml-1">Tipo de Activo</label>
+            <select formControlName="type" class="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-sm font-bold cursor-pointer">
+              <option value="RESIDENTIAL">Residencial</option>
+              <option value="COMMERCIAL">Comercial</option>
+              <option value="INDUSTRIAL">Industrial</option>
+              <option value="OFFICE">Oficina</option>
+            </select>
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-[10px] font-black uppercase text-gray-500 ml-1">Estado Operativo</label>
+            <select formControlName="status" class="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-sm font-bold cursor-pointer">
+              <option value="AVAILABLE">Disponible</option>
+              <option value="RENTED">Alquilado</option>
+              <option value="MAINTENANCE">Mantenimiento</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <section class="space-y-4">
+        <h3 class="text-xs font-black uppercase text-indigo-600 border-b border-indigo-50 pb-2 italic">02. Dimensiones y Distribución</h3>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1">
+            <label class="text-[10px] font-black uppercase text-gray-500 ml-1">M² Útiles *</label>
+            <input type="number" formControlName="surfaceUseful" 
+                   [class.border-red-500]="form.get('surfaceUseful')?.invalid && form.get('surfaceUseful')?.touched"
+                   class="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-sm font-bold">
+            @if (form.get('surfaceUseful')?.invalid && form.get('surfaceUseful')?.touched) {
+              <span class="text-[9px] text-red-500 font-black uppercase ml-1">Mínimo 1m²</span>
+            }
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-[10px] font-black uppercase text-gray-500 ml-1">M² Totales *</label>
+            <input type="number" formControlName="surfaceTotal" 
+                   [class.border-red-500]="form.get('surfaceTotal')?.invalid && form.get('surfaceTotal')?.touched"
+                   class="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-sm font-bold">
+            @if (form.get('surfaceTotal')?.invalid && form.get('surfaceTotal')?.touched) {
+              <span class="text-[9px] text-red-500 font-black uppercase ml-1">Mínimo 1m²</span>
+            }
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-4">
+          <div class="flex flex-col gap-1">
+            <label class="text-[10px] font-black uppercase text-gray-500 ml-1">Hab.</label>
+            <input type="number" formControlName="bedrooms" class="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-sm font-bold">
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-[10px] font-black uppercase text-gray-500 ml-1">Baños</label>
+            <input type="number" formControlName="bathrooms" class="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-sm font-bold">
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-[10px] font-black uppercase text-gray-500 ml-1">Orientación</label>
+            <select formControlName="orientation" class="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-sm font-bold cursor-pointer">
+              <option value="NORTH">Norte</option>
+              <option value="SOUTH">Sur</option>
+              <option value="EAST">Este</option>
+              <option value="WEST">Oeste</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <section class="space-y-4">
+        <h3 class="text-xs font-black uppercase text-indigo-600 border-b border-indigo-50 pb-2 italic">03. Eficiencia y Construcción</h3>
+        <div class="grid grid-cols-3 gap-4">
+          <div class="flex flex-col gap-1">
+            <label class="text-[10px] font-black uppercase text-gray-500 ml-1">Año Const. *</label>
+            <input type="number" formControlName="constructionYear" 
+                   [class.border-red-500]="form.get('constructionYear')?.invalid && form.get('constructionYear')?.touched"
+                   class="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-sm font-bold">
+            @if (form.get('constructionYear')?.invalid && form.get('constructionYear')?.touched) {
+              <span class="text-[9px] text-red-500 font-black uppercase">Obligatorio</span>
+            }
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-[10px] font-black uppercase text-gray-500 ml-1">Cert. Energ.</label>
+            <input formControlName="energyRating" placeholder="A-G" class="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-sm font-bold uppercase text-center">
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-[10px] font-black uppercase text-gray-500 ml-1">kWh/m² año</label>
+            <input type="number" formControlName="energyScore" class="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-sm font-bold">
+          </div>
+        </div>
+      </section>
+
+      <section class="space-y-4">
+        <h3 class="text-xs font-black uppercase text-indigo-600 border-b border-indigo-50 pb-2 italic">04. Dotaciones</h3>
+        <div class="grid grid-cols-2 gap-y-4 px-2">
+          <label class="flex items-center gap-3 cursor-pointer group">
+            <input type="checkbox" formControlName="hasElevator" class="w-5 h-5 rounded-lg border-gray-200 text-indigo-600 focus:ring-indigo-500">
+            <span class="text-[10px] font-black uppercase text-gray-400 group-hover:text-indigo-600 transition-colors">Ascensor</span>
+          </label>
+          <label class="flex items-center gap-3 cursor-pointer group">
+            <input type="checkbox" formControlName="hasParking" class="w-5 h-5 rounded-lg border-gray-200 text-indigo-600 focus:ring-indigo-500">
+            <span class="text-[10px] font-black uppercase text-gray-400 group-hover:text-indigo-600 transition-colors">Parking</span>
+          </label>
+          <label class="flex items-center gap-3 cursor-pointer group">
+            <input type="checkbox" formControlName="hasStorageRoom" class="w-5 h-5 rounded-lg border-gray-200 text-indigo-600 focus:ring-indigo-500">
+            <span class="text-[10px] font-black uppercase text-gray-400 group-hover:text-indigo-600 transition-colors">Trastero</span>
+          </label>
+          <label class="flex items-center gap-3 cursor-pointer group">
+            <input type="checkbox" formControlName="hasTerrace" class="w-5 h-5 rounded-lg border-gray-200 text-indigo-600 focus:ring-indigo-500">
+            <span class="text-[10px] font-black uppercase text-gray-400 group-hover:text-indigo-600 transition-colors">Terraza</span>
+          </label>
+        </div>
+      </section>
+
+      <section formGroupName="address" class="space-y-4">
+        <h3 class="text-xs font-black uppercase text-indigo-600 border-b border-indigo-50 pb-2 italic">05. Ubicación Geográfica</h3>
+        <div class="flex flex-col gap-1">
+          <label class="text-[10px] font-black uppercase text-gray-500 ml-1">Dirección Física *</label>
+          <input formControlName="addressLine1" 
+                 [class.border-red-500]="form.get('address.addressLine1')?.invalid && form.get('address.addressLine1')?.touched"
+                 class="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500">
+          @if (form.get('address.addressLine1')?.invalid && form.get('address.addressLine1')?.touched) {
+            <span class="text-[9px] text-red-500 font-black uppercase ml-1">Requerido</span>
+          }
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1">
+            <label class="text-[10px] font-black uppercase text-gray-500 ml-1">Código Postal *</label>
+            <input formControlName="postalCode" 
+                   [class.border-red-500]="form.get('address.postalCode')?.invalid && form.get('address.postalCode')?.touched"
+                   class="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-sm font-bold">
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-[10px] font-black uppercase text-gray-500 ml-1">Ciudad *</label>
+            <input formControlName="city" 
+                   [class.border-red-500]="form.get('address.city')?.invalid && form.get('address.city')?.touched"
+                   class="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-sm font-bold">
+          </div>
+        </div>
+      </section>
+
+      <section class="space-y-4">
+        <h3 class="text-xs font-black uppercase text-indigo-600 border-b border-indigo-50 pb-2 italic">06. Descripción Adicional</h3>
+        <textarea formControlName="description" rows="3" class="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-sm font-bold outline-none resize-none focus:ring-2 focus:ring-indigo-500" placeholder="Notas internas o memoria descriptiva..."></textarea>
+      </section>
+    </form>
+  </div>
+
+  <footer class="p-6 border-t border-gray-100 bg-gray-50/80 backdrop-blur-md flex items-center gap-3 shrink-0">
+    <button type="button" (click)="close()" 
+            class="flex-1 px-6 py-4 bg-white border border-gray-200 text-gray-400 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-50 transition-all cursor-pointer">
+      Descartar
+    </button>
+    <button type="submit" form="propertyMasterForm" [disabled]="isLoading()"
+            class="flex-1 px-6 py-4 bg-indigo-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 active:scale-95 disabled:opacity-50 cursor-pointer">
+      {{ isLoading() ? 'Procesando...' : 'Sincronizar Activo' }}
+    </button>
+  </footer>
+
 </div>

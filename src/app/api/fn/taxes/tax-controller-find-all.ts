@@ -27,4 +27,4 @@ export function taxControllerFindAll(http: HttpClient, rootUrl: string, params?:
   );
 }
 
-taxControllerFindAll.PATH = '/tax';
+taxControllerFindAll.PATH = '/taxes';

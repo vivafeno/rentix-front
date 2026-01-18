@@ -28,4 +28,4 @@ export function clientProfileControllerFindOne(http: HttpClient, rootUrl: string
   );
 }
 
-clientProfileControllerFindOne.PATH = '/client-profiles/{id}';
+clientProfileControllerFindOne.PATH = '/tenant-profiles/{id}';

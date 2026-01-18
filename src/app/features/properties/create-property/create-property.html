@@ -5,12 +5,15 @@
       Nueva Propiedad
     </h2>
     <p class="mt-2 text-center text-sm text-slate-600">
-      Paso {{ step() }} de 2: {{ step() === 1 ? 'Ubicación' : 'Ficha Técnica' }}
+      Paso {{ step() }} de 3: 
+      @if (step() === 1) { Ubicación }
+      @else if (step() === 2) { Ficha Técnica }
+      @else { Equipamiento }
     </p>
     
     <div class="mt-4 w-full bg-gray-200 rounded-full h-2.5">
       <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
-           [style.width.%]="step() === 1 ? 50 : 100"></div>
+           [style.width.%]="(step() / 3) * 100"></div>
     </div>
   </div>
 
@@ -27,11 +30,16 @@
 
         @if (step() === 1) {
           <div formGroupName="location" class="space-y-4">
-            
             <div>
-              <label class="block text-sm font-medium text-slate-700">Nombre del Inmueble *</label>
-              <input type="text" formControlName="name" placeholder="Ej: Ático Centro"
+              <label class="block text-sm font-medium text-slate-700">Código Interno *</label>
+              <input type="text" formControlName="internalCode"
                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border">
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-slate-700">Referencia Catastral</label>
+              <input type="text" formControlName="cadastralReference" placeholder="Referencia oficial"
+                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border uppercase">
             </div>
 
             <div formGroupName="address" class="space-y-4 pt-4 border-t border-gray-100">
@@ -55,12 +63,6 @@
                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border">
                 </div>
               </div>
-
-              <div>
-                <label class="block text-sm font-medium text-slate-700">Provincia *</label>
-                <input type="text" formControlName="province"
-                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border">
-              </div>
             </div>
 
             <button type="button" (click)="next()" 
@@ -71,35 +73,81 @@
         }
 
         @if (step() === 2) {
-          <div formGroupName="details" class="space-y-4">
-            
+          <div formGroupName="technical" class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-slate-700">Tipo de Inmueble *</label>
               <select formControlName="type"
                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border">
                 <option value="RESIDENTIAL">Residencial</option>
-                <option value="COMMERCIAL">Comercial / Local</option>
+                <option value="COMMERCIAL">Comercial</option>
                 <option value="INDUSTRIAL">Industrial</option>
-                <option value="PARKING">Garaje / Parking</option>
-                <option value="STORAGE">Trastero</option>
-                <option value="ROOM">Habitación</option>
-                <option value="LAND">Terreno</option>
+                <option value="PARKING">Parking</option>
               </select>
             </div>
 
-            <div>
-              <label class="block text-sm font-medium text-slate-700">Superficie (m²) *</label>
-              <input type="number" formControlName="surfaceM2"
-                       class="block w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-700">Sup. Útil (m²) *</label>
+                <input type="number" formControlName="surfaceUseful"
+                       class="mt-1 block w-full rounded-md border-gray-300 p-2 border sm:text-sm">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700">Sup. Total (m²) *</label>
+                <input type="number" formControlName="surfaceTotal"
+                       class="mt-1 block w-full rounded-md border-gray-300 p-2 border sm:text-sm">
+              </div>
             </div>
 
-            <div>
-              <label class="block text-sm font-medium text-slate-700">Referencia Catastral</label>
-              <input type="text" formControlName="cadastralReference" 
-                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border uppercase">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-700">Dormitorios</label>
+                <input type="number" formControlName="bedrooms"
+                       class="mt-1 block w-full rounded-md border-gray-300 p-2 border sm:text-sm">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700">Baños</label>
+                <input type="number" formControlName="bathrooms"
+                       class="mt-1 block w-full rounded-md border-gray-300 p-2 border sm:text-sm">
+              </div>
             </div>
 
             <div class="flex gap-3 pt-4">
+              <button type="button" (click)="back()"
+                      class="flex-1 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-gray-50">
+                ← Atrás
+              </button>
+              <button type="button" (click)="next()"
+                      class="flex-1 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                Siguiente →
+              </button>
+            </div>
+          </div>
+        }
+
+        @if (step() === 3) {
+          <div formGroupName="amenities" class="space-y-4">
+            <p class="text-sm font-medium text-slate-700 border-b pb-2">Equipamiento y Extras</p>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <label class="flex items-center space-x-3 text-sm text-slate-600">
+                <input type="checkbox" formControlName="hasElevator" class="rounded border-gray-300 text-blue-600">
+                <span>Ascensor</span>
+              </label>
+              <label class="flex items-center space-x-3 text-sm text-slate-600">
+                <input type="checkbox" formControlName="hasParking" class="rounded border-gray-300 text-blue-600">
+                <span>Parking</span>
+              </label>
+              <label class="flex items-center space-x-3 text-sm text-slate-600">
+                <input type="checkbox" formControlName="hasTerrace" class="rounded border-gray-300 text-blue-600">
+                <span>Terraza</span>
+              </label>
+              <label class="flex items-center space-x-3 text-sm text-slate-600">
+                <input type="checkbox" formControlName="hasPool" class="rounded border-gray-300 text-blue-600">
+                <span>Piscina</span>
+              </label>
+            </div>
+
+            <div class="flex gap-3 pt-6">
               <button type="button" (click)="back()"
                       class="flex-1 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-gray-50">
                 ← Atrás
@@ -108,7 +156,7 @@
               <button type="submit" 
                       [disabled]="isSubmitting()"
                       class="flex-1 flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50">
-                @if (isSubmitting()) { Guardando... } @else { ✅ Crear Propiedad }
+                @if (isSubmitting()) { Guardando... } @else { ✅ Finalizar }
               </button>
             </div>
           </div>

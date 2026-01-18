@@ -1,14 +1,23 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
+import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 import { SessionService } from '../../../core/services/session.service';
 import { ApiConfiguration } from '../../../api/api-configuration';
+import { HttpClient } from '@angular/common/http';
 import { propertyControllerCreate } from '../../../api/fn/properties/property-controller-create';
+import { CreatePropertyDto } from '../../../api/models';
 
+/**
+ * Componente de flujo guiado para la creación de activos inmobiliarios.
+ * * Estándares Blueprint 2026:
+ * - Sincronización estricta con CreatePropertyDto (Backend).
+ * - Uso de NonNullableFormBuilder para robustez de tipos.
+ * - Mapping de tipos nativos (Number) antes del envío.
+ */
 @Component({
   selector: 'app-create-property',
   standalone: true,
@@ -16,112 +25,126 @@ import { propertyControllerCreate } from '../../../api/fn/properties/property-co
   templateUrl: './create-property.html',
 })
 export class CreatePropertyComponent {
-  private fb = inject(FormBuilder);
-  private router = inject(Router);
-  private session = inject(SessionService);
-  private http = inject(HttpClient);
-  private config = inject(ApiConfiguration);
+  private readonly fb = inject(NonNullableFormBuilder);
+  private readonly router = inject(Router);
+  private readonly session = inject(SessionService);
+  private readonly http = inject(HttpClient);
+  private readonly config = inject(ApiConfiguration);
 
-  // --- ESTADO ---
-  step = signal<number>(1);
-  isSubmitting = signal<boolean>(false);
-  errorMessage = signal<string | null>(null);
+  public step = signal<number>(1);
+  public isSubmitting = signal<boolean>(false);
+  public errorMessage = signal<string | null>(null);
 
-  // --- FORMULARIO (Sincronizado con nombres reales del api-json) ---
-  form = this.fb.group({
+  /**
+   * Formulario 100% alineado con los nombres del DTO de NestJS.
+   * Cambios: buildYear -> constructionYear | hasPool -> hasStorageRoom.
+   */
+  public form = this.fb.group({
     location: this.fb.group({
-      name: ['', [Validators.required, Validators.minLength(3)]], // Antes 'alias'
-      internalCode: [`PROP-${Date.now()}`, Validators.required],  // Obligatorio en tu JSON
+      internalCode: [`PROP-${Date.now()}`, [Validators.required]],
+      cadastralReference: ['', [Validators.maxLength(25)]],
       address: this.fb.group({
-        addressLine1: ['', Validators.required], // Antes 'street'
-        city: ['', Validators.required],
-        postalCode: ['', [Validators.required]], // Antes 'zipCode'
-        province: ['', Validators.required],
-        countryCode: ['ES', Validators.required] // Antes 'country'
+        addressLine1: ['', [Validators.required]],
+        city: ['', [Validators.required]],
+        postalCode: ['', [Validators.required]],
+        province: ['Valencia', [Validators.required]],
+        countryCode: ['ES', [Validators.required]]
       })
     }),
-    details: this.fb.group({
-      type: ['RESIDENTIAL', Validators.required], // Enum real: RESIDENTIAL, COMMERCIAL...
-      surfaceM2: [null as number | null, [Validators.required, Validators.min(1)]], // Antes 'surface'
-      cadastralReference: ['', [Validators.maxLength(20)]]
+    technical: this.fb.group({
+      type: ['RESIDENTIAL', [Validators.required]],
+      status: ['AVAILABLE', [Validators.required]],
+      surfaceUseful: [0, [Validators.required, Validators.min(1)]],
+      surfaceTotal: [0, [Validators.required, Validators.min(1)]],
+      bedrooms: [0, [Validators.min(0)]],
+      bathrooms: [0, [Validators.min(0)]],
+      constructionYear: [new Date().getFullYear(), [Validators.min(1800), Validators.max(2100)]]
+    }),
+    amenities: this.fb.group({
+      hasElevator: [false],
+      hasParking: [false],
+      hasTerrace: [false],
+      hasStorageRoom: [false] // Alineado con el DTO del backend
     })
   });
 
-  // --- GETTERS ---
   get locationGroup() { return this.form.get('location'); }
-  get detailsGroup() { return this.form.get('details'); }
+  get technicalGroup() { return this.form.get('technical'); }
 
-  // --- NAVEGACIÓN ---
-  next() {
-    if (this.step() === 1) {
-      if (this.locationGroup?.valid) {
-        this.step.set(2);
-      } else {
-        this.locationGroup?.markAllAsTouched();
-      }
+  public next(): void {
+    if (this.step() === 1 && this.locationGroup?.valid) {
+      this.step.set(2);
+    } else if (this.step() === 2 && this.technicalGroup?.valid) {
+      this.step.set(3);
+    } else {
+      this.form.markAllAsTouched();
     }
   }
 
-  back() {
-    this.step.set(1);
+  public back(): void {
+    this.step.update(s => s > 1 ? s - 1 : s);
   }
 
-  closeError() {
+  /**
+   * Envío de datos al Backend.
+   * Asegura que el payload sea idéntico a lo que espera la API de NestJS.
+   */
+  async onSubmit(): Promise<void> {
     this.errorMessage.set(null);
-  }
+    const currentCompany = this.session.currentCompany();
 
-  // --- SUBMIT ---
-async onSubmit() {
-  this.errorMessage.set(null);
-  const currentCompany = this.session.currentCompany();
-
-  if (!currentCompany) {
-    this.errorMessage.set('Selecciona una empresa primero.');
-    return;
-  }
-
-  if (this.form.invalid) {
-    this.form.markAllAsTouched();
-    return;
-  }
-
-  this.isSubmitting.set(true);
-  const rawValue = this.form.getRawValue();
-
-  // 1. ELIMINAMOS companyId del payload (el backend no lo quiere aquí)
-  const payload = {
-    name: rawValue.location.name,
-    internalCode: rawValue.location.internalCode,
-    type: rawValue.details.type,
-    surfaceM2: Number(rawValue.details.surfaceM2),
-    cadastralReference: rawValue.details.cadastralReference || '',
-    address: {
-      addressLine1: rawValue.location.address.addressLine1,
-      city: rawValue.location.address.city,
-      postalCode: rawValue.location.address.postalCode,
-      province: rawValue.location.address.province,
-      countryCode: rawValue.location.address.countryCode,
-      type: 'PROPERTY',
-      status: 'ACTIVE',
-      isDefault: true
+    if (!currentCompany) {
+      this.errorMessage.set('Contexto de organización no detectado.');
+      return;
     }
-  };
 
-  try {
-    // 2. ENVIAMOS EL ID POR HEADER (Contexto)
-    // El nombre del header suele ser 'x-company-id' o similar según tu Backend
-    await firstValueFrom(this.http.post(`${this.config.rootUrl}/properties`, payload, {
-      headers: {
-        'x-company-id': currentCompany.companyId || (currentCompany as any).companyId
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    this.isSubmitting.set(true);
+    const raw = this.form.getRawValue();
+
+    // Payload alineado estrictamente con el contrato del Backend
+    const payload: CreatePropertyDto = {
+      internalCode: raw.location.internalCode,
+      cadastralReference: raw.location.cadastralReference || undefined,
+      type: raw.technical.type as any,
+      status: raw.technical.status as any,
+      surfaceUseful: Number(raw.technical.surfaceUseful),
+      surfaceTotal: Number(raw.technical.surfaceTotal),
+      bedrooms: Number(raw.technical.bedrooms),
+      bathrooms: Number(raw.technical.bathrooms),
+      constructionYear: Number(raw.technical.constructionYear), // Corregido buildYear -> constructionYear
+
+      hasElevator: raw.amenities.hasElevator,
+      hasParking: raw.amenities.hasParking,
+      hasTerrace: raw.amenities.hasTerrace,
+      hasStorageRoom: raw.amenities.hasStorageRoom, // Corregido hasPool -> hasStorageRoom
+
+      address: {
+        addressLine1: raw.location.address.addressLine1,
+        city: raw.location.address.city,
+        postalCode: raw.location.address.postalCode,
+        province: raw.location.address.province,
+        countryCode: raw.location.address.countryCode,
+        type: 'PROPERTY' as any,
+        status: 'ACTIVE' as any
       }
-    }));
+    };
 
-    this.router.navigate(['/app/properties']);
-  } catch (error: any) {
-    console.error('❌ Error:', error);
-    this.errorMessage.set(error.error?.message || 'Error al crear la propiedad');
-  } finally {
-    this.isSubmitting.set(false);
+    try {
+      await firstValueFrom(
+        propertyControllerCreate(this.http, this.config.rootUrl, { body: payload })
+          .pipe(map(r => r.body))
+      );
+
+      this.router.navigate(['/app/properties']);
+    } catch (error: any) {
+      this.errorMessage.set(error.error?.message || 'Error al registrar activo');
+    } finally {
+      this.isSubmitting.set(false);
+    }
   }
-}
 }

@@ -7,13 +7,13 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { CreateClientDto } from '../../models/create-client-dto';
+import { CreateTenantDto } from '../../models/create-tenant-dto';
 
-export interface ClientControllerCreate$Params {
-      body: CreateClientDto
+export interface TenantControllerCreate$Params {
+      body: CreateTenantDto
 }
 
-export function clientControllerCreate(http: HttpClient, rootUrl: string, params: ClientControllerCreate$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+export function clientControllerCreate(http: HttpClient, rootUrl: string, params: TenantControllerCreate$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
   const rb = new RequestBuilder(rootUrl, clientControllerCreate.PATH, 'post');
   if (params) {
     rb.body(params.body, 'application/json');
@@ -29,4 +29,4 @@ export function clientControllerCreate(http: HttpClient, rootUrl: string, params
   );
 }
 
-clientControllerCreate.PATH = '/client';
+clientControllerCreate.PATH = '/tenant';

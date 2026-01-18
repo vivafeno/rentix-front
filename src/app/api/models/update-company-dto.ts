@@ -4,8 +4,24 @@
 import { UpdateFacturaePartyDto } from '../models/update-facturae-party-dto';
 import { UpdateFiscalAddressDto } from '../models/update-fiscal-address-dto';
 export interface UpdateCompanyDto {
+
+  /**
+   * Email de contacto de la empresa
+   */
   email?: string;
+
+  /**
+   * Actualización parcial de identidad fiscal
+   */
   facturaeParty?: UpdateFacturaePartyDto;
+
+  /**
+   * Actualización parcial de dirección fiscal
+   */
   fiscalAddress?: UpdateFiscalAddressDto;
+
+  /**
+   * Teléfono de contacto de la empresa
+   */
   phone?: string;
 }

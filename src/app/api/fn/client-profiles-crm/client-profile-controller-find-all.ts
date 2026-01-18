@@ -26,4 +26,4 @@ export function clientProfileControllerFindAll(http: HttpClient, rootUrl: string
   );
 }
 
-clientProfileControllerFindAll.PATH = '/client-profiles';
+clientProfileControllerFindAll.PATH = '/tenant-profiles';

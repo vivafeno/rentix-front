@@ -1,108 +1,140 @@
-<div class="p-6 max-w-7xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto p-8 space-y-10 animate-in fade-in duration-500">
 
-  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+  <header class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-100 pb-6">
     <div>
-      <h1 class="text-2xl font-bold text-slate-900">
-        Hola, {{ session.user()?.firstName || 'Gestor' }} 👋
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
+        Resumen de Actividad
       </h1>
       <p class="text-slate-500 text-sm">
-        Aquí tienes el resumen de tu empresa <span class="font-medium text-blue-600">{{
-          session.currentCompany()?.legalName }}</span>
+        Entidad: <span class="font-semibold text-slate-700">{{ session.currentCompany()?.companyName }}</span> 
+        <span class="mx-2 text-slate-300">|</span> 
+        Usuario: <span class="text-slate-600">{{ session.user()?.firstName }} {{ session.user()?.lastName }}</span>
       </p>
     </div>
+    
+    <div class="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-md">
+      <div class="h-1.5 w-1.5 rounded-full bg-emerald-500"></div>
+      <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Sincronizado</span>
+    </div>
+  </header>
 
-    <button
-      class="inline-flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm">
-      <span>➕</span> Crear nuevo...
-    </button>
-  </div>
-
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    @for (stat of stats(); track stat.title) {
-    <div
-      class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-start justify-between hover:shadow-md transition-shadow">
-      <div>
-        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">{{ stat.title }}</p>
-        <p class="mt-1 text-2xl font-bold text-slate-900">{{ stat.value }}</p>
-        @if (stat.trend) {
-        <span class="text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full mt-2 inline-block">
-          {{ stat.trend }} vs mes pasado
-        </span>
-        }
-        @if (stat.subtext) {
-        <p class="text-xs text-slate-400 mt-1">{{ stat.subtext }}</p>
-        }
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    
+    <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
+      <div class="flex items-center justify-between mb-4">
+        <p class="text-[11px] font-bold uppercase text-slate-400 tracking-wider">Activos Totales</p>
+        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m4 0h1m-5 10h1m4 0h1m-5-4h1m4 0h1" /></svg>
       </div>
-      <div class="p-2 rounded-lg {{ stat.bg }}">
-        <span class="text-xl">{{ stat.icon }}</span>
+      <div class="flex items-baseline gap-2">
+        <span class="text-3xl font-bold text-slate-900">{{ totalUnits() }}</span>
+        <span class="text-xs font-medium text-slate-400">Uds.</span>
       </div>
     </div>
-    }
-  </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-    <div class="lg:col-span-2 space-y-6">
-
-      <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 min-h-[300px]">
-        <div class="flex items-center justify-between mb-6">
-          <h3 class="font-semibold text-slate-800">Evolución de Ingresos</h3>
-          <select class="text-xs border-slate-200 rounded-md text-slate-500">
-            <option>Últimos 6 meses</option>
-            <option>Este año</option>
-          </select>
-        </div>
-
-        <div
-          class="w-full h-48 bg-slate-50 rounded-lg border border-dashed border-slate-200 flex items-center justify-center text-slate-400 text-sm">
-          [ Aquí irá la gráfica de Chart.js ]
+    <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
+      <div class="flex items-center justify-between mb-4">
+        <p class="text-[11px] font-bold uppercase text-slate-400 tracking-wider">Ratio Ocupación</p>
+        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+      </div>
+      <div class="space-y-3">
+        <span class="text-3xl font-bold text-slate-900">{{ occupancyRate() }}%</span>
+        <div class="w-full h-1.5 bg-slate-100 rounded-full">
+          <div class="h-full bg-indigo-600 rounded-full transition-all duration-700" [style.width.%]="occupancyRate()"></div>
         </div>
       </div>
-
     </div>
 
-    <div class="space-y-6">
+    <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
+      <div class="flex items-center justify-between mb-4">
+        <p class="text-[11px] font-bold uppercase text-slate-400 tracking-wider">Disponibilidad</p>
+        <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+      </div>
+      <div class="flex items-baseline gap-2">
+        <span class="text-3xl font-bold text-emerald-600">{{ availableUnits() }}</span>
+        <span class="text-xs font-medium text-slate-400">Vacantes</span>
+      </div>
+    </div>
 
-      <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
-        <h3 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
-          🔔 Atención Requerida
-        </h3>
-        <div class="space-y-3">
-          @for (task of pendingTasks(); track task.id) {
-          <div class="flex items-start gap-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
-            <div class="w-2 h-2 mt-2 rounded-full" [ngClass]="{
-                  'bg-red-500': task.status === 'danger',
-                  'bg-orange-400': task.status === 'warning',
-                  'bg-blue-400': task.status === 'info'
-                }"></div>
+    <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
+      <div class="flex items-center justify-between mb-4">
+        <p class="text-[11px] font-bold uppercase text-slate-400 tracking-wider">Superficie Total</p>
+        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
+      </div>
+      <div class="flex items-baseline gap-2">
+        <span class="text-3xl font-bold text-slate-900">{{ totalSurface() | number:'1.0-0' }}</span>
+        <span class="text-xs font-medium text-slate-400">m²</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+    
+    <div class="lg:col-span-3 bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <h3 class="text-sm font-bold text-slate-700 uppercase tracking-tight">Últimos activos registrados</h3>
+        <button routerLink="/app/properties" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800">Gestionar inventario →</button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="text-[10px] font-bold uppercase text-slate-400 bg-slate-50/30">
+              <th class="px-6 py-3 border-b border-slate-100">Referencia</th>
+              <th class="px-6 py-3 border-b border-slate-100">Ubicación</th>
+              <th class="px-6 py-3 border-b border-slate-100">Tipo</th>
+              <th class="px-6 py-3 border-b border-slate-100 text-right">Estado</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            @for (prop of properties().slice(0, 5); track prop.id) {
+              <tr class="hover:bg-slate-50 transition-colors">
+                <td class="px-6 py-4 text-sm font-bold text-slate-700">{{ prop.internalCode }}</td>
+                <td class="px-6 py-4 text-sm text-slate-500">{{ prop.address?.city }}</td>
+                <td class="px-6 py-4 text-xs text-slate-400 font-medium uppercase">{{ prop.type }}</td>
+                <td class="px-6 py-4 text-right">
+                  <span class="inline-flex px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-tighter"
+                    [ngClass]="{
+                      'bg-emerald-100 text-emerald-700': prop.status === 'AVAILABLE',
+                      'bg-amber-100 text-amber-700': prop.status === 'RENTED',
+                      'bg-slate-200 text-slate-600': prop.status === 'MAINTENANCE'
+                    }">
+                    {{ prop.status }}
+                  </span>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4" class="px-6 py-12 text-center text-slate-400 text-xs italic">
+                  No existen registros en el sistema.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="space-y-4">
+      <div class="p-6 bg-slate-900 rounded-lg text-white">
+        <h4 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Hoja de Ruta</h4>
+        <div class="space-y-4">
+          <div class="flex gap-3">
+            <div class="mt-1 h-2 w-2 rounded-full bg-indigo-500"></div>
             <div>
-              <p class="text-sm font-medium text-slate-700">{{ task.title }}</p>
-              <p class="text-xs text-slate-400">{{ task.date }}</p>
+              <p class="text-xs font-bold">Módulo Fiscal</p>
+              <p class="text-[10px] text-slate-500">Próxima implementación: Q1 2026</p>
             </div>
           </div>
-          }
-        </div>
-        <button class="w-full mt-4 text-center text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline">
-          Ver todas las notificaciones
-        </button>
-      </div>
-
-      <div class="bg-slate-900 p-5 rounded-xl shadow-md text-white">
-        <h3 class="font-semibold mb-4 text-slate-200">Accesos Rápidos</h3>
-        <div class="grid grid-cols-2 gap-3">
-          @for (action of quickActions; track action.label) {
-          <a [routerLink]="action.route"
-            class="flex flex-col items-center justify-center p-3 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors border border-slate-700 group cursor-pointer text-decoration-none">
-
-            <span class="text-2xl mb-1 group-hover:scale-110 transition-transform">{{ action.icon }}</span>
-            <span class="text-xs text-slate-300 text-center">{{ action.label }}</span>
-
-          </a>
-          }
+          <div class="flex gap-3 opacity-40">
+            <div class="mt-1 h-2 w-2 rounded-full bg-slate-600"></div>
+            <div>
+              <p class="text-xs font-bold">Reportes Avanzados</p>
+              <p class="text-[10px] text-slate-500">Pendiente de despliegue</p>
+            </div>
+          </div>
         </div>
       </div>
-
     </div>
-  </div>
 
+  </div>
 </div>

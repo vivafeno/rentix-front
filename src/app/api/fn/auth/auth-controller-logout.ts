@@ -11,21 +11,17 @@ import { RequestBuilder } from '../../request-builder';
 export interface AuthControllerLogout$Params {
 }
 
-export function authControllerLogout(http: HttpClient, rootUrl: string, params?: AuthControllerLogout$Params, context?: HttpContext): Observable<StrictHttpResponse<{
-'message'?: string;
-}>> {
+export function authControllerLogout(http: HttpClient, rootUrl: string, params?: AuthControllerLogout$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
   const rb = new RequestBuilder(rootUrl, authControllerLogout.PATH, 'post');
   if (params) {
   }
 
   return http.request(
-    rb.build({ responseType: 'json', accept: 'application/json', context })
+    rb.build({ responseType: 'text', accept: '*/*', context })
   ).pipe(
     filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
     map((r: HttpResponse<any>) => {
-      return r as StrictHttpResponse<{
-      'message'?: string;
-      }>;
+      return (r as HttpResponse<any>).clone({ body: undefined }) as StrictHttpResponse<void>;
     })
   );
 }

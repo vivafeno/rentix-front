@@ -34,7 +34,7 @@ export interface CompanyRoleEntity {
   /**
    * Rol del usuario dentro de la empresa
    */
-  role: 'OWNER' | 'ADMIN' | 'MANAGER' | 'VIEWER';
+  role: 'OWNER' | 'TENANT' | 'VIEWER';
 
   /**
    * Fecha de última modificación

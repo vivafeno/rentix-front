@@ -7,12 +7,10 @@ import { SessionService } from '../../../core/services/session.service';
 import { Property } from '../../../api/models';
 import { PropertyFormComponent } from '../property-form/property-form.component';
 
-interface PropertyFilters {
-  search: string;
-  type: string;
-  city: string;
-}
-
+/**
+ * Dashboard de gestión de inventario inmobiliario.
+ * Utiliza Signals para una reactividad de alto rendimiento.
+ */
 @Component({
   selector: 'app-property-list',
   standalone: true,
@@ -25,12 +23,11 @@ export class PropertyListComponent implements OnInit {
 
   @ViewChild(PropertyFormComponent) propertyForm!: PropertyFormComponent;
 
-  // --- Estado Reacivo (Signals) ---
   public properties = signal<Property[]>([]);
   public isLoading = signal(false);
-  public isTrashMode = signal<boolean>(false);
+  public activeTab = signal<'active' | 'trash'>('active');
   
-  public filters = signal<PropertyFilters>({
+  public filters = signal({
     search: '',
     type: 'ALL',
     city: ''
@@ -39,31 +36,23 @@ export class PropertyListComponent implements OnInit {
   public readonly availableTypes = [
     { value: 'RESIDENTIAL', label: 'Residencial' },
     { value: 'COMMERCIAL', label: 'Comercial' },
-    { value: 'INDUSTRIAL', label: 'Industrial' },
-    { value: 'PARKING', label: 'Parking' },
-    { value: 'STORAGE', label: 'Trastero' },
-    { value: 'ROOM', label: 'Habitación' },
-    { value: 'LAND', label: 'Terreno' }
+    { value: 'INDUSTRIAL', label: 'Industrial' }
   ];
 
   /**
-   * Lógica de filtrado optimizada.
-   * Aplica normalización de caracteres para ignorar acentos en la búsqueda de ciudad.
+   * Filtrado en memoria basado en Signals.
    */
   public filteredProperties = computed(() => {
     const list = this.properties() || [];
     const f = this.filters();
 
     return list.filter(p => {
-      // 1. Filtro por Tipo
       const matchType = f.type === 'ALL' || p.type === f.type;
-      
-      // 2. Filtro por Búsqueda (Nombre o Referencia)
+      const searchLower = f.search.toLowerCase();
       const matchSearch = !f.search || 
-        p.name.toLowerCase().includes(f.search.toLowerCase()) || 
-        p.internalCode?.toLowerCase().includes(f.search.toLowerCase());
+        p.internalCode?.toLowerCase().includes(searchLower) || 
+        p.cadastralReference?.toLowerCase().includes(searchLower);
       
-      // 3. Filtro por Ciudad (Normalización de tildes y control de nulos)
       const matchCity = !f.city || this.normalizeText(p.address?.city || '')
         .includes(this.normalizeText(f.city));
 
@@ -76,39 +65,38 @@ export class PropertyListComponent implements OnInit {
   }
 
   /**
-   * Carga de datos desde el servicio según el estado de la vista (Activos/Papelera).
+   * Carga los activos según la pestaña seleccionada.
    */
   async loadProperties(): Promise<void> {
     this.isLoading.set(true);
     try {
-      const data = this.isTrashMode() 
+      const data = this.activeTab() === 'trash'
         ? await this.propertyService.findTrash() 
         : await this.propertyService.findAll();
       this.properties.set(data || []);
     } catch (error) {
-      console.error('Data Fetch Error:', error);
+      console.error('Fetch Error:', error);
       this.properties.set([]);
     } finally {
       this.isLoading.set(false);
     }
   }
 
-  public updateFilter(key: keyof PropertyFilters, value: string): void {
-    this.filters.update(prev => ({ ...prev, [key]: value }));
-  }
-
-  public toggleTrashView(): void {
-    this.isTrashMode.update(val => !val);
+  /**
+   * Cambia entre vista activa y papelera.
+   */
+  public toggleTab(tab: 'active' | 'trash'): void {
+    this.activeTab.set(tab);
     this.loadProperties();
   }
 
   public editProperty(prop: Property): void {
-    if (this.isTrashMode()) return;
+    if (this.activeTab() === 'trash') return;
     this.propertyForm?.open(prop);
   }
 
   async deleteProperty(id: string): Promise<void> {
-    if (!confirm('¿Confirmar traslado a la papelera?')) return;
+    if (!confirm('¿Mover a la papelera?')) return;
     try {
       await this.propertyService.remove(id);
       await this.loadProperties();
@@ -126,13 +114,7 @@ export class PropertyListComponent implements OnInit {
     }
   }
 
-  /**
-   * Helper para normalizar texto: minúsculas y eliminación de diacríticos (acentos).
-   */
   private normalizeText(text: string): string {
-    return text
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "");
+    return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   }
 }

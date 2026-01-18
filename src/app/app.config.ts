@@ -1,30 +1,43 @@
-import { ApplicationConfig } from '@angular/core';
+import { ApplicationConfig, provideZonelessChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
+import { provideHttpClient, withFetch } from '@angular/common/http';
+import { provideAngularQuery, QueryClient } from '@tanstack/angular-query-experimental';
 
 import { routes } from './app.routes';
-import { authInterceptor } from './core/auth/auth.interceptor';
 import { ApiConfiguration } from './api/api-configuration';
 
+/**
+ * @description Configuración central Rentix 2026.
+ * Implementa: Zoneless Change Detection, TanStack Query y Native Fetch.
+ */
 export const appConfig: ApplicationConfig = {
   providers: [
-    // 1. Router Moderno
+    // 🚩 ELIMINAMOS ZONE.JS: La app ahora es 100% reactiva vía Signals.
+    provideZonelessChangeDetection(),
+
     provideRouter(routes),
     
-    // 2. HTTP Client Moderno (Fetch API + Interceptores Funcionales)
-    provideHttpClient(
-      withFetch(), // Usa fetch() nativo del navegador (más rápido que XHR)
-      withInterceptors([authInterceptor]) // Tu interceptor de tokens
-    ),
+    // Mantenemos HttpClient con Fetch solo por compatibilidad con los modelos generados,
+    // pero nuestro flujo principal será a través del ApiService Nativo.
+    provideHttpClient(withFetch()),
 
-    // 3. Configuración de la API (Patrón Factory Provider)
-    // Instanciamos la configuración manualmente. Angular usará esta instancia
-    // cada vez que un servicio pida 'ApiConfiguration'.
+    // 🚩 CONFIGURACIÓN TANSTACK QUERY (El sucesor operativo de OpenAPI RxJS)
+    provideAngularQuery(new QueryClient({
+      defaultOptions: {
+        queries: {
+          staleTime: 1000 * 60 * 5, // 5 minutos de caché.
+          retry: 1,
+          refetchOnWindowFocus: false,
+        },
+      },
+    })),
+
+    // Configuración de la URL base
     {
       provide: ApiConfiguration,
       useFactory: () => {
         const config = new ApiConfiguration();
-        config.rootUrl = 'http://localhost:3000'; // Tu Backend
+        config.rootUrl = 'http://localhost:3000';
         return config;
       }
     }

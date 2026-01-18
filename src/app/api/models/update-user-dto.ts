@@ -9,12 +9,32 @@ export interface UpdateUserDto {
   appRole?: 'SUPERADMIN' | 'ADMIN' | 'USER';
 
   /**
+   * URL de la foto de perfil
+   */
+  avatarUrl?: string;
+
+  /**
    * Correo electrónico único del usuario
    */
   email?: string;
 
   /**
+   * Nombre del usuario
+   */
+  firstName?: string;
+
+  /**
+   * Apellidos del usuario
+   */
+  lastName?: string;
+
+  /**
    * Contraseña del usuario (mínimo 6 caracteres)
    */
   password?: string;
+
+  /**
+   * Teléfono de contacto
+   */
+  phone?: string;
 }

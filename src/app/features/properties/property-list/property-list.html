@@ -1,151 +1,116 @@
-<div class="p-8 bg-gray-50 min-h-screen">
-  <div class="max-w-7xl mx-auto">
+<app-property-form (saved)="loadProperties()"></app-property-form>
 
-    <header class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
-      <div>
-        <h1 class="text-3xl font-black text-gray-900 tracking-tight">
-          {{ isTrashMode() ? 'Papelera de Inmuebles' : 'Gestión de Inmuebles' }}
-        </h1>
-        <p class="text-gray-500 font-medium">
-          Empresa: <span class="text-indigo-600 font-bold">{{ session.currentCompany()?.legalName || 'Cargando...' }}</span>
-        </p>
-      </div>
+<div class="max-w-6xl mx-auto p-6 space-y-8">
 
-      <button (click)="loadProperties()"
-        class="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl transition-all shadow-lg shadow-indigo-100 active:scale-95 border-0 cursor-pointer">
-        ＋ {{ isTrashMode() ? 'Refrescar Papelera' : 'Refrescar Lista' }}
-      </button>
-    </header>
-
-    <div class="flex flex-col gap-4 bg-white p-4 rounded-3xl border border-gray-100 shadow-sm mb-10">
-      <div class="flex flex-wrap items-center gap-4">
-        
-        <div class="flex-1 min-w-[250px] relative">
-          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
-          <input type="text" 
-                 [ngModel]="filters().search" 
-                 (ngModelChange)="updateFilter('search', $event)"
-                 placeholder="Buscar por nombre o referencia..."
-                 class="w-full pl-12 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 transition-all">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-gray-100 pb-8">
+        <div>
+            <h1 class="text-3xl font-black text-gray-900 tracking-tight italic uppercase">
+                {{ activeTab() === 'trash' ? 'Papelera de Activos' : 'Activos Inmobiliarios' }}
+            </h1>
+            <p class="text-sm font-bold text-gray-400 uppercase tracking-widest mt-1">
+                {{ activeTab() === 'trash' ? 'Recuperación de unidades dadas de baja' : 'Gestión y control del inventario técnico' }}
+            </p>
         </div>
 
-        <div class="inline-flex items-center gap-2 bg-gray-50 px-4 py-1.5 rounded-2xl">
-          <span class="text-[10px] font-black text-gray-400 uppercase">Tipo:</span>
-          <select [ngModel]="filters().type" (ngModelChange)="updateFilter('type', $event)"
-            class="bg-transparent border-none text-sm font-bold text-gray-700 focus:ring-0 cursor-pointer p-0 pr-8">
-            <option value="ALL">Todos</option>
-            @for (item of availableTypes; track item.value) {
-              <option [value]="item.value">{{ item.label }}</option>
-            }
-          </select>
+        <div class="flex items-center gap-3">
+            <div class="flex bg-gray-100 p-1 rounded-2xl mr-2">
+                <button (click)="toggleTab('active')"
+                    [class.bg-white]="activeTab() === 'active'"
+                    [class.shadow-sm]="activeTab() === 'active'"
+                    class="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer">
+                    Activos
+                </button>
+                <button (click)="toggleTab('trash')"
+                    [class.bg-white]="activeTab() === 'trash'"
+                    [class.text-red-600]="activeTab() === 'trash'"
+                    class="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer flex items-center gap-2">
+                    Papelera
+                </button>
+            </div>
+
+            <button (click)="propertyForm.open()"
+                class="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 active:scale-95 cursor-pointer">
+                <span class="text-xl">+</span>
+                Nuevo Activo
+            </button>
         </div>
-
-        <div class="relative">
-          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-[10px]">📍</span>
-          <input type="text" 
-                 [ngModel]="filters().city" 
-                 (ngModelChange)="updateFilter('city', $event)"
-                 placeholder="Ciudad..."
-                 class="pl-8 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 w-40">
-        </div>
-
-        <div class="hidden md:block w-px h-8 bg-gray-100 mx-2"></div>
-
-        <button (click)="toggleTrashView()" 
-          [class]="isTrashMode() 
-            ? 'bg-amber-50 text-amber-700 border-amber-200 shadow-inner' 
-            : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50 shadow-sm'"
-          class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl border text-sm font-black transition-all cursor-pointer">
-          {{ isTrashMode() ? '🔙 Ver Activos' : '🗑️ Papelera' }}
-        </button>
-      </div>
     </div>
 
     @if (isLoading()) {
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        @for (i of [1,2,3]; track i) {
-          <div class="h-64 bg-white rounded-3xl animate-pulse shadow-sm border border-gray-100"></div>
-        }
-      </div>
+    <div class="flex flex-col items-center justify-center py-20 space-y-4">
+        <div class="w-10 h-10 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
+        <span class="text-[10px] font-black uppercase text-gray-400 tracking-widest italic">Sincronizando inventario...</span>
+    </div>
     } @else {
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        @for (prop of filteredProperties(); track prop.id) {
-          <div [class.grayscale-[0.5]!]="isTrashMode()"
-               [class.bg-gray-50!]="isTrashMode()"
-               class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all group relative flex flex-col justify-between min-h-[260px]">
-            
-            <div class="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-              @if (isTrashMode()) {
-                <button (click)="onRestore(prop.id)" 
-                        class="bg-green-600 shadow-lg p-2.5 rounded-xl text-white hover:bg-green-700 border-0 transition-all cursor-pointer hover:scale-110"
-                        title="Restaurar Inmueble">
-                  🔄
-                </button>
-              } @else {
-                <button (click)="editProperty(prop)" 
-                        class="bg-white shadow-md p-2.5 rounded-xl text-gray-400 hover:text-indigo-600 border border-gray-100 transition-all cursor-pointer hover:scale-110"
-                        title="Editar">
-                  ✏️
-                </button>
-                <button (click)="deleteProperty(prop.id)" 
-                        class="bg-white shadow-md p-2.5 rounded-xl text-gray-400 hover:text-red-600 border border-gray-100 transition-all cursor-pointer hover:scale-110"
-                        title="Eliminar">
-                  🗑️
-                </button>
-              }
+        <div class="animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden" 
+                 [class.border-red-100]="activeTab() === 'trash'"
+                 [class.bg-gray-50]="activeTab() === 'trash'">
+                <ng-container *ngTemplateOutlet="propertyTable; context: { items: filteredProperties() }"></ng-container>
             </div>
-
-            <div>
-              <div [class]="isTrashMode() ? 'bg-gray-200 text-gray-500' : 'bg-indigo-50 text-indigo-600'" 
-                   class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mb-6 font-bold transition-colors shadow-sm">
-                @switch (prop.type) {
-                  @case ('RESIDENTIAL') { 🏢 }
-                  @case ('COMMERCIAL') { 🏪 }
-                  @case ('INDUSTRIAL') { 🏭 }
-                  @case ('PARKING') { 🚗 }
-                  @default { 🏠 }
-                }
-              </div>
-              
-              <h3 class="text-xl font-black text-gray-900 mb-1 leading-tight truncate" [title]="prop.name">
-                {{ prop.name }}
-              </h3>
-
-              <p class="text-xs font-bold text-gray-400 uppercase tracking-widest truncate">
-                @if (prop.address) {
-                  {{ prop.address.addressLine1 }}, {{ prop.address.city }}
-                } @else {
-                  Sin dirección registrada
-                }
-              </p>
-            </div>
-
-            <div class="mt-8 pt-6 border-t border-gray-50 flex items-center justify-between text-[10px] font-black uppercase tracking-[0.15em] text-gray-400">
-              <div class="flex items-center gap-3">
-                 <span class="flex items-center gap-1">📏 {{ prop.surfaceM2 || '0' }} m²</span>
-                 <span [class]="isTrashMode() ? 'bg-amber-100 text-amber-700' : 'bg-indigo-50 text-indigo-600'"
-                       class="px-2.5 py-1 rounded-lg text-[9px] shadow-sm">
-                   {{ isTrashMode() ? 'ELIMINADO' : prop.status }}
-                 </span>
-              </div>
-              <span>Ref: {{ prop.internalCode }}</span>
-            </div>
-          </div>
-        } @empty {
-          <div class="col-span-full text-center py-24 bg-white rounded-[2.5rem] border-dashed border-2 border-gray-100">
-            <div class="text-5xl mb-6 opacity-40">{{ isTrashMode() ? '♻️' : '🏠' }}</div>
-            <p class="text-gray-900 font-black text-xl mb-1">
-              {{ isTrashMode() ? 'La papelera está vacía' : 'No hay inmuebles que coincidan' }}
-            </p>
-            <p class="text-gray-400 font-medium">
-              {{ isTrashMode() ? '¡Todo en orden por aquí!' : 'Prueba a cambiar los filtros o añadir un nuevo activo.' }}
-            </p>
-          </div>
-        }
-      </div>
+        </div>
     }
-
-    <app-property-form (saved)="loadProperties()"></app-property-form>
-
-  </div>
 </div>
+
+<ng-template #propertyTable let-items="items">
+    <table class="w-full text-left">
+        <thead class="bg-gray-50/50">
+            <tr>
+                <th class="p-4 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-100">Activo / Ref</th>
+                <th class="p-4 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-100">Ubicación</th>
+                <th class="p-4 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-100 text-center">Superficie</th>
+                <th class="p-4 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-100 text-center">Estado</th>
+                <th class="p-4 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-100 text-right">Acción</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+            @for (prop of items; track prop.id) {
+                <tr class="hover:bg-indigo-50/30 transition-colors group">
+                    <td class="p-4">
+                        <div class="font-bold text-gray-900">{{ prop.internalCode }}</div>
+                        <div class="text-[10px] text-gray-400 font-black uppercase">
+                            {{ prop.type }} • {{ prop.bedrooms }} DORM • {{ prop.bathrooms }} BAÑOS
+                        </div>
+                    </td>
+                    <td class="p-4 text-xs font-bold text-gray-700">
+                        {{ prop.address.addressLine1 }}
+                        <div class="text-[9px] text-gray-400 uppercase font-black">{{ prop.address.city }}</div>
+                    </td>
+                    <td class="p-4 text-center">
+                        <div class="font-black text-indigo-600 text-xs">{{ prop.surfaceUseful }}m²</div>
+                        <div class="text-[9px] text-gray-400 uppercase font-black">Útiles</div>
+                    </td>
+                    <td class="p-4 text-center">
+                        <span class="px-2 py-1 rounded-lg text-[9px] font-black uppercase"
+                            [ngClass]="{
+                                'bg-green-100 text-green-700': prop.status === 'AVAILABLE',
+                                'bg-amber-100 text-amber-700': prop.status === 'RENTED',
+                                'bg-gray-100 text-gray-500': prop.status === 'MAINTENANCE'
+                            }">
+                            {{ prop.status }}
+                        </span>
+                    </td>
+                    <td class="p-4 text-right">
+                        @if (activeTab() === 'trash') {
+                            <button (click)="onRestore(prop.id)"
+                                class="px-3 py-1 bg-green-50 text-green-600 rounded-lg text-[10px] font-black uppercase tracking-tighter hover:bg-green-600 hover:text-white transition-all cursor-pointer">
+                                Restaurar
+                            </button>
+                        } @else {
+                            <div class="flex justify-end gap-2">
+                                <button (click)="editProperty(prop)" class="text-gray-300 hover:text-indigo-600 p-1 cursor-pointer">✎</button>
+                                <button (click)="deleteProperty(prop.id)" class="text-gray-300 hover:text-red-500 p-1 cursor-pointer">✕</button>
+                            </div>
+                        }
+                    </td>
+                </tr>
+            } @empty {
+                <tr>
+                    <td colspan="5" class="p-12 text-center opacity-30 italic text-xs font-bold">
+                        No hay activos disponibles en esta sección
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</ng-template>

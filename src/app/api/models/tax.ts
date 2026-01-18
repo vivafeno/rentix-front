@@ -5,7 +5,7 @@ import { TaxType } from '../models/tax-type';
 export interface Tax {
 
   /**
-   * ID de la empresa
+   * UUID de la empresa propietaria
    */
   companyId: string;
 
@@ -19,6 +19,10 @@ export interface Tax {
    */
   deletedAt?: {
 };
+
+  /**
+   * Código oficial para exportación FacturaE
+   */
   facturaeCode: string;
 
   /**
@@ -30,9 +34,25 @@ export interface Tax {
    * Indicador de visibilidad operativa
    */
   isActive: boolean;
+
+  /**
+   * Define si el impuesto resta de la base (ej. IRPF)
+   */
   isRetention: boolean;
+
+  /**
+   * Nombre descriptivo para listados y facturas
+   */
   name: string;
+
+  /**
+   * Porcentaje impositivo (0-100)
+   */
   rate: number;
+
+  /**
+   * Categorización según normativa fiscal vigente
+   */
   type: TaxType;
 
   /**

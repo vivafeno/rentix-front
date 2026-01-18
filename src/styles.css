@@ -1,1 +1,31 @@
 @import "tailwindcss";
+
+/* 🚩 CONFIGURACIÓN DARK MODE V4 */
+/* Esto crea la variante 'dark:' vinculada a la clase .dark en el HTML */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* Mantenemos tus variables si quieres, pero Tailwind ya trae slate por defecto */
+  --font-sans: 'Inter', ui-sans-serif, system-ui;
+}
+
+/* Transiciones globales para que el cambio no sea brusco */
+* {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 2000ms;
+}
+
+:root {
+  color-scheme: light;
+}
+
+:root.dark {
+  color-scheme: dark;
+}
+
+/* Aplicación base */
+body {
+  @apply bg-slate-50 text-slate-900 antialiased;
+  @apply dark:bg-slate-950 dark:text-slate-100;
+}

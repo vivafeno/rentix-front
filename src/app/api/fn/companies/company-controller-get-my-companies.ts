@@ -7,12 +7,12 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { CompanyMeDto } from '../../models/company-me-dto';
+import { Company } from '../../models/company';
 
 export interface CompanyControllerGetMyCompanies$Params {
 }
 
-export function companyControllerGetMyCompanies(http: HttpClient, rootUrl: string, params?: CompanyControllerGetMyCompanies$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<CompanyMeDto>>> {
+export function companyControllerGetMyCompanies(http: HttpClient, rootUrl: string, params?: CompanyControllerGetMyCompanies$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<Company>>> {
   const rb = new RequestBuilder(rootUrl, companyControllerGetMyCompanies.PATH, 'get');
   if (params) {
   }
@@ -22,7 +22,7 @@ export function companyControllerGetMyCompanies(http: HttpClient, rootUrl: strin
   ).pipe(
     filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
     map((r: HttpResponse<any>) => {
-      return r as StrictHttpResponse<Array<CompanyMeDto>>;
+      return r as StrictHttpResponse<Array<Company>>;
     })
   );
 }

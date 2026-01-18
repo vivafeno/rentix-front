@@ -7,14 +7,14 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { UpdateClientDto } from '../../models/update-client-dto';
+import { UpdateTenantDto } from '../../models/update-tenant-dto';
 
-export interface ClientControllerUpdate$Params {
+export interface TenantControllerUpdate$Params {
   id: string;
-      body: UpdateClientDto
+      body: UpdateTenantDto
 }
 
-export function clientControllerUpdate(http: HttpClient, rootUrl: string, params: ClientControllerUpdate$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+export function clientControllerUpdate(http: HttpClient, rootUrl: string, params: TenantControllerUpdate$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
   const rb = new RequestBuilder(rootUrl, clientControllerUpdate.PATH, 'patch');
   if (params) {
     rb.path('id', params.id, {});

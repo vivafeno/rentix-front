@@ -7,11 +7,12 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { Object } from '../../models/object';
 import { TokensDto } from '../../models/tokens-dto';
 
 export interface AuthControllerRefresh$Params {
-      body: Object
+      body: {
+'refreshToken': string;
+}
 }
 
 export function authControllerRefresh(http: HttpClient, rootUrl: string, params: AuthControllerRefresh$Params, context?: HttpContext): Observable<StrictHttpResponse<TokensDto>> {
