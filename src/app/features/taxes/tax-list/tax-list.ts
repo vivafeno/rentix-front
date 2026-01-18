@@ -41,14 +41,14 @@ export class TaxListComponent implements OnInit {
    * Discriminador: t.deletedAt === null
    */
   public vats = computed(() => 
-    this.taxes().filter(t => (t.type === 'VAT' || t.type === 'IGIC') && !t.deletedAt)
+    this.taxes().filter(t => (t.tipo === 'IVA' || t.tipo === 'IGIC') && !t.deletedAt)
   );
   
   /** * Filtra las retenciones impositivas activas.
    * Discriminador: t.deletedAt === null
    */
   public retentions = computed(() => 
-    this.taxes().filter(t => t.type === 'RETENTION' && !t.deletedAt)
+    this.taxes().filter(t => t.tipo === 'IRPF' && !t.deletedAt)
   );
 
   /** * Proyecta los elementos que residen en la papelera de reciclaje.

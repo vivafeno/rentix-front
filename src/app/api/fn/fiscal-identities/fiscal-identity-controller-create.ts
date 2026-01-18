@@ -7,11 +7,11 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { CreateFiscalEntityDto } from '../../models/create-fiscal-entity-dto';
+import { CreateFiscalDto } from '../../models/create-fiscal-dto';
 import { FiscalEntity } from '../../models/fiscal-entity';
 
 export interface FiscalIdentityControllerCreate$Params {
-      body: CreateFiscalEntityDto
+      body: CreateFiscalDto
 }
 
 export function fiscalIdentityControllerCreate(http: HttpClient, rootUrl: string, params: FiscalIdentityControllerCreate$Params, context?: HttpContext): Observable<StrictHttpResponse<FiscalEntity>> {

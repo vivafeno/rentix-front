@@ -5,15 +5,32 @@ import { TaxType } from '../models/tax-type';
 export interface CreateTaxDto {
 
   /**
-   * Código oficial Facturae
+   * Causa de exención AEAT (ej: E1 para alquiler vivienda)
    */
-  facturaeCode?: string;
-  isRetention?: boolean;
-  name: string;
-  rate: number;
+  causaExencion?: string;
 
   /**
-   * Tipo lógico para Facturae
+   * Código oficial FacturaE (IVA=01, IRPF=02)
    */
-  type: TaxType;
+  codigoFacturae?: string;
+
+  /**
+   * Si es true, el valor resta de la base imponible
+   */
+  esRetencion?: boolean;
+
+  /**
+   * Nombre descriptivo para la factura
+   */
+  nombre: string;
+
+  /**
+   * Porcentaje impositivo (0 a 100)
+   */
+  porcentaje: number;
+
+  /**
+   * Categorización lógica del impuesto
+   */
+  tipo: TaxType;
 }

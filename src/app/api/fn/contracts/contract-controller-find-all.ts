@@ -10,17 +10,11 @@ import { RequestBuilder } from '../../request-builder';
 import { Contract } from '../../models/contract';
 
 export interface ContractControllerFindAll$Params {
-
-/**
- * UUID de la empresa
- */
-  companyId: string;
 }
 
-export function contractControllerFindAll(http: HttpClient, rootUrl: string, params: ContractControllerFindAll$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<Contract>>> {
+export function contractControllerFindAll(http: HttpClient, rootUrl: string, params?: ContractControllerFindAll$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<Contract>>> {
   const rb = new RequestBuilder(rootUrl, contractControllerFindAll.PATH, 'get');
   if (params) {
-    rb.path('companyId', params.companyId, {});
   }
 
   return http.request(
@@ -33,4 +27,4 @@ export function contractControllerFindAll(http: HttpClient, rootUrl: string, par
   );
 }
 
-contractControllerFindAll.PATH = '/contracts/by-company/{companyId}';
+contractControllerFindAll.PATH = '/contracts';

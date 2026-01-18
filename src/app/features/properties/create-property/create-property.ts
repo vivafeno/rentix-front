@@ -108,27 +108,27 @@ export class CreatePropertyComponent {
 
     // Payload alineado estrictamente con el contrato del Backend
     const payload: CreatePropertyDto = {
-      internalCode: raw.location.internalCode,
-      cadastralReference: raw.location.cadastralReference || undefined,
-      type: raw.technical.type as any,
-      status: raw.technical.status as any,
-      surfaceUseful: Number(raw.technical.surfaceUseful),
-      surfaceTotal: Number(raw.technical.surfaceTotal),
-      bedrooms: Number(raw.technical.bedrooms),
-      bathrooms: Number(raw.technical.bathrooms),
-      constructionYear: Number(raw.technical.constructionYear), // Corregido buildYear -> constructionYear
+      codigoInterno: raw.location.internalCode,
+      referenciaCatastral: raw.location.cadastralReference || undefined,
+      tipo: raw.technical.type as any,
+      estado: raw.technical.status as any,
+      superficieUtil: Number(raw.technical.surfaceUseful),
+      superficieConstruida: Number(raw.technical.surfaceTotal),
+      dormitorios: Number(raw.technical.bedrooms),
+      baños: Number(raw.technical.bathrooms),
+      anoConstruccion: Number(raw.technical.constructionYear), // Corregido buildYear -> constructionYear
 
-      hasElevator: raw.amenities.hasElevator,
-      hasParking: raw.amenities.hasParking,
-      hasTerrace: raw.amenities.hasTerrace,
-      hasStorageRoom: raw.amenities.hasStorageRoom, // Corregido hasPool -> hasStorageRoom
+      tieneAscensor: raw.amenities.hasElevator,
+      tieneParking: raw.amenities.hasParking,
+      tieneTerraza: raw.amenities.hasTerrace,
+      tieneTrastero: raw.amenities.hasStorageRoom, // Corregido hasPool -> hasStorageRoom
 
       address: {
-        addressLine1: raw.location.address.addressLine1,
-        city: raw.location.address.city,
-        postalCode: raw.location.address.postalCode,
-        province: raw.location.address.province,
-        countryCode: raw.location.address.countryCode,
+        direccion: raw.location.address.addressLine1,
+        poblacion: raw.location.address.city,
+        codigoPostal: raw.location.address.postalCode,
+        provincia: raw.location.address.province,
+        codigoPais: raw.location.address.countryCode,
         type: 'PROPERTY' as any,
         status: 'ACTIVE' as any
       }

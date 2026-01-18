@@ -3,7 +3,7 @@
 
 
 /**
- * Tipo lógico para Facturae
+ * Categorización lógica del impuesto
  */
-export type TaxType = 'VAT' | 'RETENTION' | 'IGIC' | 'OTHER';
+export type TaxType = 'IVA' | 'IRPF' | 'IGIC' | 'IPSI' | 'OTRO';
 

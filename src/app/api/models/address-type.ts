@@ -5,5 +5,5 @@
 /**
  * Propósito legal o físico de la dirección
  */
-export type AddressType = 'FISCAL' | 'COMMERCIAL' | 'PROPERTY' | 'OTHER';
+export type AddressType = 'FISCAL' | 'COMERCIAL' | 'INMUEBLE' | 'NOTIFICACION' | 'OTRA';
 

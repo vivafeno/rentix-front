@@ -47,13 +47,13 @@ export class PropertyListComponent implements OnInit {
     const f = this.filters();
 
     return list.filter(p => {
-      const matchType = f.type === 'ALL' || p.type === f.type;
+      const matchType = f.type === 'ALL' || p.tipo === f.type;
       const searchLower = f.search.toLowerCase();
       const matchSearch = !f.search || 
-        p.internalCode?.toLowerCase().includes(searchLower) || 
-        p.cadastralReference?.toLowerCase().includes(searchLower);
+        p.codigoInterno?.toLowerCase().includes(searchLower) || 
+        p.referenciaCatastral?.toLowerCase().includes(searchLower);
       
-      const matchCity = !f.city || this.normalizeText(p.address?.city || '')
+      const matchCity = !f.city || this.normalizeText(p.address?.poblacion || '')
         .includes(this.normalizeText(f.city));
 
       return matchType && matchSearch && matchCity;

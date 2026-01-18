@@ -33,6 +33,15 @@ export class UserSelectorComponent {
   /** @description Emite el usuario y metadatos adicionales al padre. */
   @Output() onUserSelected = new EventEmitter<User & { tempProfile?: any }>();
 
+  /** * @description Emisor de usuario seleccionado. 
+   * Debe estar tipado con <User> para que el padre lo reconozca.
+   */
+  @Output() userSelected = new EventEmitter<User>();
+
+  public select(user: User): void {
+    this.userSelected.emit(user);
+  }
+
   /** @description Estados reactivos de la interfaz. */
   public isCreating = signal<boolean>(false);
   public isSearching = signal<boolean>(false);

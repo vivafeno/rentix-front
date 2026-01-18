@@ -36,16 +36,6 @@ export interface Company {
 };
 
   /**
-   * Objeto completo de la identidad fiscal (Razón social, CIF...)
-   */
-  facturaeParty: FiscalEntity;
-
-  /**
-   * UUID de la identidad fiscal (Referencia a FacturaeParty)
-   */
-  facturaePartyId: string;
-
-  /**
    * Objeto completo de la dirección fiscal
    */
   fiscalAddress?: Address;
@@ -54,6 +44,16 @@ export interface Company {
    * UUID de la dirección fiscal asociada
    */
   fiscalAddressId?: string;
+
+  /**
+   * Objeto completo de la identidad fiscal (Razón social, NIF...)
+   */
+  fiscalEntity: FiscalEntity;
+
+  /**
+   * UUID de la identidad fiscal (Referencia a FiscalEntity)
+   */
+  fiscalEntityId: string;
 
   /**
    * ID único (UUID v4)

@@ -7,16 +7,13 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { CreateCompanyLegalDto } from '../../models/create-company-legal-dto';
 
-export interface CompanyControllerCreateTenant$Params {
-      body: CreateCompanyLegalDto
+export interface HealthControllerDb$Params {
 }
 
-export function companyControllerCreateTenant(http: HttpClient, rootUrl: string, params: CompanyControllerCreateTenant$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-  const rb = new RequestBuilder(rootUrl, companyControllerCreateTenant.PATH, 'post');
+export function healthControllerDb(http: HttpClient, rootUrl: string, params?: HealthControllerDb$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+  const rb = new RequestBuilder(rootUrl, healthControllerDb.PATH, 'get');
   if (params) {
-    rb.body(params.body, 'application/json');
   }
 
   return http.request(
@@ -29,4 +26,4 @@ export function companyControllerCreateTenant(http: HttpClient, rootUrl: string,
   );
 }
 
-companyControllerCreateTenant.PATH = '/companies/tenant';
+healthControllerDb.PATH = '/health/db';

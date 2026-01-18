@@ -39,7 +39,7 @@ export class TenantListComponent implements OnInit {
    */
   public trashCount = computed(() => {
     const list = this.tenants();
-    return Array.isArray(list) ? list.filter(t => t.status === 'INACTIVE').length : 0;
+    return Array.isArray(list) ? list.filter(t => t.estado === 'INACTIVO').length : 0;
   });
 
   /**

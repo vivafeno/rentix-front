@@ -3,12 +3,20 @@
 
 import { Address } from '../models/address';
 export interface Tenant {
-  addresses: Array<Address>;
 
   /**
-   * IBAN para cobros automáticos
+   * Referencia interna administrativa
    */
-  bankAccountIban: string;
+  codigoInterno: string;
+
+  /**
+   * Código de residencia fiscal (1=ES, 2=UE, 3=EXT)
+   */
+  codigoResidencia: string;
+
+  /**
+   * UUID de la empresa propietaria
+   */
   companyId: string;
 
   /**
@@ -21,8 +29,19 @@ export interface Tenant {
    */
   deletedAt?: {
 };
+  direcciones: Array<Address>;
   email: string;
+  estado: 'ACTIVO' | 'INACTIVO' | 'POTENCIAL' | 'LISTA_NEGRA';
+
+  /**
+   * UUID de la identidad fiscal vinculada
+   */
   fiscalIdentityId: string;
+
+  /**
+   * IBAN para remesas SEPA
+   */
+  ibanBancario: string;
 
   /**
    * ID único (UUID v4)
@@ -30,21 +49,10 @@ export interface Tenant {
   id: string;
 
   /**
-   * Referencia interna administrativa
-   */
-  internalCode: string;
-
-  /**
    * Indicador de visibilidad operativa
    */
   isActive: boolean;
-  phoneNumber: string;
-
-  /**
-   * Código de residencia fiscal (AEAT)
-   */
-  residencyCode: string;
-  status: 'ACTIVE' | 'INACTIVE' | 'POTENTIAL' | 'BLACKLISTED';
+  telefono: string;
 
   /**
    * Fecha de última modificación

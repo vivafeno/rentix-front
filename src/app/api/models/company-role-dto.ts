@@ -16,5 +16,5 @@ export interface CompanyRoleDto {
   /**
    * Nivel de permisos del usuario dentro de esta empresa específica
    */
-  role: 'OWNER' | 'TENANT' | 'VIEWER';
+  role: 'PROPIETARIO' | 'ARRENDATARIO' | 'GESTOR';
 }

@@ -4,19 +4,30 @@
 export interface UpdateTenantDto {
 
   /**
-   * ID de la empresa propietaria (Tenant Isolation)
+   * Código interno ERP
    */
-  companyId?: string;
-  email?: string;
+  codigoInterno?: string;
 
   /**
-   * ID de la Identidad Fiscal legal asociada (Módulo Facturae)
+   * Código residencia AEAT (1: Es, 2: UE, 3: Ext)
+   */
+  codigoResidencia?: string;
+
+  /**
+   * ID de la Dirección Fiscal
+   */
+  direccionFiscalId?: string;
+  email?: string;
+  estado?: 'ACTIVO' | 'INACTIVO' | 'POTENCIAL' | 'LISTA_NEGRA';
+
+  /**
+   * ID de la Identidad Fiscal (NIF/CIF)
    */
   fiscalIdentityId?: string;
 
   /**
-   * Código de referencia interno para el ERP
+   * IBAN para domiciliaciones SEPA
    */
-  internalCode?: string;
-  status?: 'ACTIVE' | 'INACTIVE' | 'POTENTIAL' | 'BLACKLISTED';
+  ibanBancario?: string;
+  telefono?: string;
 }

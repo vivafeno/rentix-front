@@ -5,34 +5,34 @@ import { Address } from '../models/address';
 export interface Property {
 
   /**
-   * Relación con la dirección física
+   * Dirección física del inmueble
    */
   address: Address;
 
   /**
-   * Número de baños completos
+   * Año de construcción
    */
-  bathrooms?: number;
+  anoConstruccion?: number;
 
   /**
-   * Número de dormitorios (legales)
+   * Número de baños
    */
-  bedrooms?: number;
+  'baños'?: number;
 
   /**
-   * Identificador oficial en el Catastro
+   * Calificación energética (A-G)
    */
-  cadastralReference?: string;
+  certificadoEnergetico?: string;
 
   /**
-   * UUID de la organización propietaria
+   * Código de referencia interno (ej. P01-4A)
+   */
+  codigoInterno: string;
+
+  /**
+   * UUID de la organización propietaria (Tenant Isolation)
    */
   companyId: string;
-
-  /**
-   * Año de finalización de la construcción
-   */
-  constructionYear?: number;
 
   /**
    * Fecha de creación
@@ -46,34 +46,14 @@ export interface Property {
 };
 
   /**
-   * Calificación energética (A-G)
+   * Número de dormitorios
    */
-  energyRating?: string;
+  dormitorios?: number;
 
   /**
-   * Consumo de energía primaria (kWh/m² año)
+   * Estado operativo
    */
-  energyScore?: number;
-
-  /**
-   * Indica si la finca dispone de ascensor
-   */
-  hasElevator: boolean;
-
-  /**
-   * Indica si dispone de plaza de garaje vinculada
-   */
-  hasParking: boolean;
-
-  /**
-   * Indica si dispone de trastero
-   */
-  hasStorageRoom: boolean;
-
-  /**
-   * Indica si el inmueble posee terraza o balcón exterior
-   */
-  hasTerrace: boolean;
+  estado: 'DISPONIBLE' | 'ALQUILADO' | 'RESERVADO' | 'MANTENIMIENTO' | 'NO_DISPONIBLE';
 
   /**
    * ID único (UUID v4)
@@ -81,39 +61,44 @@ export interface Property {
   id: string;
 
   /**
-   * Código de referencia interno organizacional
-   */
-  internalCode: string;
-
-  /**
    * Indicador de visibilidad operativa
    */
   isActive: boolean;
 
   /**
-   * Orientación principal del inmueble
+   * Orientación del inmueble
    */
-  orientation?: 'NORTH' | 'SOUTH' | 'EAST' | 'WEST' | 'NORTH_EAST' | 'NORTH_WEST' | 'SOUTH_EAST' | 'SOUTH_WEST';
+  orientacion?: 'NORTE' | 'SUR' | 'ESTE' | 'OESTE' | 'NORESTE' | 'NOROESTE' | 'SURESTE' | 'SUROESTE';
 
   /**
-   * Estado operativo actual
+   * Referencia Catastral oficial (20 caracteres)
    */
-  status: 'AVAILABLE' | 'RENTED' | 'RESERVED' | 'MAINTENANCE' | 'UNAVAILABLE';
+  referenciaCatastral?: string;
 
   /**
    * Superficie total construida en m²
    */
-  surfaceTotal: number;
+  superficieConstruida: number;
 
   /**
    * Superficie útil habitable en m²
    */
-  surfaceUseful: number;
+  superficieUtil: number;
 
   /**
-   * Tipología funcional del activo
+   * ¿Tiene ascensor?
    */
-  type: 'RESIDENTIAL' | 'COMMERCIAL' | 'INDUSTRIAL' | 'PARKING' | 'STORAGE' | 'ROOM' | 'LAND' | 'OTHER';
+  tieneAscensor: boolean;
+
+  /**
+   * ¿Tiene plaza de garaje?
+   */
+  tieneParking: boolean;
+
+  /**
+   * Tipología del activo (Piso, Local, etc.)
+   */
+  tipo: 'VIVIENDA' | 'LOCAL_COMERCIAL' | 'NAVE_INDUSTRIAL' | 'GARAJE' | 'TRASTERO' | 'HABITACION' | 'TERRENO' | 'OTRO';
 
   /**
    * Fecha de última modificación

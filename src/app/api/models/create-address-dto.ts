@@ -6,19 +6,14 @@ import { AddressType } from '../models/address-type';
 export interface CreateAddressDto {
 
   /**
-   * Vía pública y número (Nodo <Address> en FacturaE)
+   * Código de país ISO 3166-1 alpha-3
    */
-  addressLine1: string;
+  codigoPais: string;
 
   /**
-   * Información adicional (Piso, puerta, bloque...)
+   * Código Postal (Normativa AEAT)
    */
-  addressLine2?: string;
-
-  /**
-   * Ciudad o Localidad
-   */
-  city: string;
+  codigoPostal: string;
 
   /**
    * ID de la empresa (Tenant Isolation)
@@ -26,9 +21,9 @@ export interface CreateAddressDto {
   companyId?: string;
 
   /**
-   * Código de país ISO 3166-1 alpha-3
+   * Vía pública, número, piso y puerta (Línea única para Veri*factu)
    */
-  countryCode: string;
+  direccion: string;
 
   /**
    * Marca esta dirección como la principal para el sujeto
@@ -36,14 +31,14 @@ export interface CreateAddressDto {
   isDefault?: boolean;
 
   /**
-   * Código Postal (Validación FacturaE)
+   * Localidad / Ciudad
    */
-  postalCode: string;
+  poblacion: string;
 
   /**
    * Provincia o Región
    */
-  province?: string;
+  provincia?: string;
 
   /**
    * Estado administrativo del registro

@@ -7,28 +7,27 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { Company } from '../../models/company';
 
 export interface CompanyControllerFindOne$Params {
 
 /**
- * UUID de la empresa
+ * UUID del patrimonio.
  */
   id: string;
 }
 
-export function companyControllerFindOne(http: HttpClient, rootUrl: string, params: CompanyControllerFindOne$Params, context?: HttpContext): Observable<StrictHttpResponse<Company>> {
+export function companyControllerFindOne(http: HttpClient, rootUrl: string, params: CompanyControllerFindOne$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
   const rb = new RequestBuilder(rootUrl, companyControllerFindOne.PATH, 'get');
   if (params) {
     rb.path('id', params.id, {});
   }
 
   return http.request(
-    rb.build({ responseType: 'json', accept: 'application/json', context })
+    rb.build({ responseType: 'text', accept: '*/*', context })
   ).pipe(
     filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
     map((r: HttpResponse<any>) => {
-      return r as StrictHttpResponse<Company>;
+      return (r as HttpResponse<any>).clone({ body: undefined }) as StrictHttpResponse<void>;
     })
   );
 }

@@ -8,14 +8,12 @@ import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
 
-export interface AddressControllerFindDraft$Params {
-  id: string;
+export interface HealthControllerCheck$Params {
 }
 
-export function addressControllerFindDraft(http: HttpClient, rootUrl: string, params: AddressControllerFindDraft$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-  const rb = new RequestBuilder(rootUrl, addressControllerFindDraft.PATH, 'get');
+export function healthControllerCheck(http: HttpClient, rootUrl: string, params?: HealthControllerCheck$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+  const rb = new RequestBuilder(rootUrl, healthControllerCheck.PATH, 'get');
   if (params) {
-    rb.path('id', params.id, {});
   }
 
   return http.request(
@@ -28,4 +26,4 @@ export function addressControllerFindDraft(http: HttpClient, rootUrl: string, pa
   );
 }
 
-addressControllerFindDraft.PATH = '/addresses/draft/{id}';
+healthControllerCheck.PATH = '/health';

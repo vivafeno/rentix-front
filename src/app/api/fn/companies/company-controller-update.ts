@@ -7,7 +7,6 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { Company } from '../../models/company';
 import { UpdateCompanyDto } from '../../models/update-company-dto';
 
 export interface CompanyControllerUpdate$Params {
@@ -15,7 +14,7 @@ export interface CompanyControllerUpdate$Params {
       body: UpdateCompanyDto
 }
 
-export function companyControllerUpdate(http: HttpClient, rootUrl: string, params: CompanyControllerUpdate$Params, context?: HttpContext): Observable<StrictHttpResponse<Company>> {
+export function companyControllerUpdate(http: HttpClient, rootUrl: string, params: CompanyControllerUpdate$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
   const rb = new RequestBuilder(rootUrl, companyControllerUpdate.PATH, 'patch');
   if (params) {
     rb.path('id', params.id, {});
@@ -23,11 +22,11 @@ export function companyControllerUpdate(http: HttpClient, rootUrl: string, param
   }
 
   return http.request(
-    rb.build({ responseType: 'json', accept: 'application/json', context })
+    rb.build({ responseType: 'text', accept: '*/*', context })
   ).pipe(
     filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
     map((r: HttpResponse<any>) => {
-      return r as StrictHttpResponse<Company>;
+      return (r as HttpResponse<any>).clone({ body: undefined }) as StrictHttpResponse<void>;
     })
   );
 }

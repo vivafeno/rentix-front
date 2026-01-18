@@ -7,16 +7,18 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { Company } from '../../models/company';
-import { CreateCompanyLegalDto } from '../../models/create-company-legal-dto';
+import { Contract } from '../../models/contract';
+import { UpdateContractDto } from '../../models/update-contract-dto';
 
-export interface CompanyControllerCreateViewer$Params {
-      body: CreateCompanyLegalDto
+export interface ContractControllerUpdate$Params {
+  id: string;
+      body: UpdateContractDto
 }
 
-export function companyControllerCreateViewer(http: HttpClient, rootUrl: string, params: CompanyControllerCreateViewer$Params, context?: HttpContext): Observable<StrictHttpResponse<Company>> {
-  const rb = new RequestBuilder(rootUrl, companyControllerCreateViewer.PATH, 'post');
+export function contractControllerUpdate(http: HttpClient, rootUrl: string, params: ContractControllerUpdate$Params, context?: HttpContext): Observable<StrictHttpResponse<Contract>> {
+  const rb = new RequestBuilder(rootUrl, contractControllerUpdate.PATH, 'patch');
   if (params) {
+    rb.path('id', params.id, {});
     rb.body(params.body, 'application/json');
   }
 
@@ -25,9 +27,9 @@ export function companyControllerCreateViewer(http: HttpClient, rootUrl: string,
   ).pipe(
     filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
     map((r: HttpResponse<any>) => {
-      return r as StrictHttpResponse<Company>;
+      return r as StrictHttpResponse<Contract>;
     })
   );
 }
 
-companyControllerCreateViewer.PATH = '/companies/viewer';
+contractControllerUpdate.PATH = '/contracts/{id}';

@@ -1,159 +1,158 @@
-<div class="min-h-screen bg-slate-50 p-6 lg:p-12">
-  <div class="mx-auto max-w-4xl">
+<div class="min-h-screen bg-slate-50 p-6 transition-colors duration-300 dark:bg-slate-950 lg:p-10">
+  <div class="mx-auto max-w-6xl">
 
-    <div class="mb-8 text-center">
-      <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Alta de Patrimonio Legal</h1>
-      <p class="mt-2 text-slate-600">Completa la infraestructura de tu empresa en una sola operación atómica.</p>
+    <header class="mb-10 flex flex-col gap-2 border-l-4 border-indigo-600 pl-6">
+      <h1 class="text-3xl font-black tracking-tighter text-slate-900 uppercase dark:text-white italic">
+        Alta Patrimonial Atómica
+      </h1>
+      <p class="text-sm font-medium text-slate-500 italic">
+        Configuración FacturaE compatible. Validación estricta contra el contrato OpenAPI.
+      </p>
+    </header>
+
+    @if (errorMessage()) {
+    <div role="alert" class="mb-8 flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 shadow-sm animate-in fade-in slide-in-from-top-2">
+      <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-red-100 font-black text-red-600">!</span>
+      <p class="font-bold">{{ errorMessage() }}</p>
     </div>
+    }
 
-    <div class="mb-12 flex items-center justify-between">
-      @for (step of [1,2,3,4]; track step) {
-      <div class="flex items-center">
-        <div [class]="currentStep() >= step 
-            ? 'flex h-10 w-10 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg shadow-indigo-200' 
-            : 'flex h-10 w-10 items-center justify-center rounded-full bg-white border-2 border-slate-200 text-slate-400'">
-          {{ step }}
-        </div>
-        @if (step < 4) { 
-          <div class="h-1 w-12 sm:w-24 mx-2 rounded bg-slate-200" [class.bg-indigo-600]="currentStep() > step"></div>
-        }
-      </div>
-      }
-    </div>
+    <form [formGroup]="form" (ngSubmit)="submitForm()" class="grid grid-cols-1 gap-8 lg:grid-cols-12">
 
-    <div class="rounded-2xl bg-white p-8 shadow-sm border border-slate-100">
-
-      @if (errorMessage()) {
-      <div class="mb-6 rounded-lg bg-red-50 p-4 text-sm text-red-700 border border-red-100 animate-in fade-in duration-300">
-        {{ errorMessage() }}
-      </div>
-      }
-
-      @if (currentStep() === 1) {
-      <div class="space-y-6 animate-in fade-in duration-500">
-        <h2 class="text-xl font-semibold text-slate-800">1. Usuario Responsable (Owner)</h2>
+      <div class="space-y-8 lg:col-span-7">
         
-        <div class="flex p-1 bg-slate-100 rounded-xl mb-6 border border-slate-200">
-          <button (click)="setUserMode('existing')" 
-                  [class.bg-white]="userMode() === 'existing'"
-                  [class.shadow-sm]="userMode() === 'existing'"
-                  class="flex-1 py-2.5 text-sm font-bold rounded-lg transition-all cursor-pointer">
-            Seleccionar existente
-          </button>
-          <button (click)="setUserMode('new')" 
-                  [class.bg-white]="userMode() === 'new'"
-                  [class.shadow-sm]="userMode() === 'new'"
-                  class="flex-1 py-2.5 text-sm font-bold rounded-lg transition-all cursor-pointer">
-            Crear nuevo usuario
-          </button>
-        </div>
+        <section class="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div class="mb-6 flex items-center justify-between">
+            <h2 class="text-xs font-black tracking-widest text-indigo-600 uppercase italic">1. Identidad y Acceso</h2>
+            <div class="flex rounded-lg border border-slate-200 bg-slate-100 p-1 dark:border-slate-800 dark:bg-slate-800/50">
+              <button type="button" (click)="setUserMode('existing')" 
+                      [class.bg-white]="userMode() === 'existing'" 
+                      class="px-4 py-1.5 text-[10px] font-black uppercase transition-all rounded-md shadow-xs">EXISTENTE</button>
+              <button type="button" (click)="setUserMode('new')" 
+                      [class.bg-white]="userMode() === 'new'" 
+                      class="px-4 py-1.5 text-[10px] font-black uppercase transition-all rounded-md shadow-xs">NUEVO DRAFT</button>
+            </div>
+          </div>
 
-        @if (userMode() === 'existing') {
-        <div class="grid gap-4 animate-in slide-in-from-left-2 duration-300">
-          <label class="block">
-            <span class="text-sm font-medium text-slate-700">Usuarios Disponibles</span>
+          @if (userMode() === 'existing') {
+          <div class="mb-6 animate-in fade-in duration-300">
+            <label class="mb-1.5 block text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Hidratar Usuario (Sanación de Perfil)</label>
             <select (change)="onUserSelect($event)"
-              class="mt-1 block w-full rounded-lg border-slate-200 bg-slate-50 p-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-hidden">
-              <option value="">Selecciona un usuario...</option>
+                    class="w-full rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm outline-hidden focus:ring-2 focus:ring-indigo-500/10 dark:border-slate-700 dark:bg-slate-800">
+              <option value="">-- Buscar Responsable --</option>
               @for (user of availableUsers(); track user.id) {
-              <option [value]="user.id">{{ user.email }}</option>
+              <option [value]="user.id">{{ user.email }} ({{ user.firstName || 'Perfil Incompleto' }})</option>
               }
             </select>
-          </label>
-        </div>
-        }
-
-        @if (userMode() === 'new') {
-        <form [formGroup]="newUserForm" class="space-y-4 animate-in slide-in-from-right-2 duration-300">
-          <div>
-            <label class="text-sm font-medium text-slate-700">Correo electrónico</label>
-            <input formControlName="email" type="email" placeholder="ejemplo@rentix.com"
-              class="mt-1 block w-full rounded-lg border-slate-200 p-3 outline-hidden focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20" />
           </div>
-          <div>
-            <label class="text-sm font-medium text-slate-700">Contraseña temporal</label>
-            <input formControlName="password" type="password"
-              class="mt-1 block w-full rounded-lg border-slate-200 p-3 outline-hidden focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20" />
-          </div>
-        </form>
-        }
+          }
 
-        <button (click)="submitStep1()" [disabled]="isLoading()"
-          class="w-full rounded-lg bg-indigo-600 px-6 py-4 font-bold text-white shadow-lg transition hover:bg-indigo-700 active:scale-[0.98] disabled:opacity-50">
-          {{ isLoading() ? 'Procesando...' : 'Confirmar Responsable y Continuar' }}
-        </button>
+          <div formGroupName="user" class="space-y-6">
+            <div class="rounded-xl bg-slate-100 p-4 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800">
+              <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div class="space-y-1">
+                  <label class="text-[10px] font-bold text-slate-500 uppercase italic">Email (Login) *</label>
+                  <input formControlName="email" type="email" class="w-full rounded-lg border border-slate-200 bg-white p-2.5 text-sm outline-none dark:bg-slate-900" />
+                </div>
+                <div class="space-y-1">
+                  <label class="text-[10px] font-bold text-slate-500 uppercase italic">Password Inicial *</label>
+                  <input formControlName="password" type="text" class="w-full rounded-lg border border-slate-200 bg-white p-2.5 text-sm font-mono outline-none dark:bg-slate-900" />
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div class="space-y-1">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Nombre *</label>
+                <input formControlName="firstName" type="text" class="w-full rounded-lg border border-slate-200 bg-slate-50 p-2.5 text-sm outline-none dark:bg-slate-800" />
+              </div>
+              <div class="space-y-1">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Apellidos *</label>
+                <input formControlName="lastName" type="text" class="w-full rounded-lg border border-slate-200 bg-slate-50 p-2.5 text-sm outline-none dark:bg-slate-800" />
+              </div>
+              <div class="col-span-2 space-y-1">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Teléfono de Contacto *</label>
+                <input formControlName="phone" type="tel" placeholder="+34..." class="w-full rounded-lg border border-slate-200 bg-slate-50 p-2.5 text-sm outline-none dark:bg-slate-800" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section formGroupName="fiscal" class="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <h2 class="mb-6 text-xs font-black tracking-widest text-indigo-600 uppercase italic">2. Entidad Legal (FacturaE Party)</h2>
+          <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div class="space-y-1 md:col-span-2">
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Razón Social / Nombre Corporativo *</label>
+              <input formControlName="corporateName" type="text" placeholder="Ej: Rentalin Assets S.L." class="w-full rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm focus:border-indigo-500 outline-hidden dark:border-slate-700 dark:bg-slate-800" />
+            </div>
+            <div class="space-y-1">
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Tax ID (NIF/CIF) *</label>
+              <input formControlName="taxId" type="text" placeholder="B12345678" class="w-full rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm focus:border-indigo-500 outline-hidden dark:border-slate-700 dark:bg-slate-800" />
+            </div>
+            <div class="space-y-1">
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Tipo Personería</label>
+              <select formControlName="personType" class="w-full rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm outline-hidden dark:border-slate-700 dark:bg-slate-800">
+                <option value="J">Persona Jurídica (JURIDICAL)</option>
+                <option value="F">Persona Física (PERSON)</option>
+              </select>
+            </div>
+          </div>
+        </section>
       </div>
-      }
 
-      @if (currentStep() === 2) {
-      <form [formGroup]="addressForm" class="space-y-6 animate-in fade-in duration-300">
-        <h2 class="text-xl font-semibold text-slate-800">2. Ubicación de la Sede</h2>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div class="sm:col-span-2">
-            <label class="text-sm font-medium">Dirección Fiscal</label>
-            <input formControlName="addressLine1" type="text" placeholder="Calle, número, piso..."
-              class="mt-1 block w-full rounded-lg border-slate-200 p-3 outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" />
+      <div class="space-y-8 lg:col-span-5">
+        
+        <section formGroupName="address" class="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <h2 class="mb-6 text-xs font-black tracking-widest text-indigo-600 uppercase italic">3. Domicilio Fiscal</h2>
+          <div class="grid gap-6">
+            <div class="space-y-1">
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Dirección Principal (addressLine1) *</label>
+              <input formControlName="addressLine1" type="text" placeholder="Calle Ejemplo, 12, 1ºA" class="w-full rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm focus:border-indigo-500 outline-hidden dark:border-slate-700 dark:bg-slate-800" />
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="space-y-1">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Ciudad *</label>
+                <input formControlName="city" type="text" class="w-full rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm outline-hidden dark:border-slate-700 dark:bg-slate-800" />
+              </div>
+              <div class="space-y-1">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Código Postal *</label>
+                <input formControlName="postalCode" type="text" class="w-full rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm outline-hidden dark:border-slate-700 dark:bg-slate-800" />
+              </div>
+            </div>
+            <div class="space-y-1">
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Provincia *</label>
+              <input formControlName="province" type="text" class="w-full rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm outline-hidden dark:border-slate-700 dark:bg-slate-800" />
+            </div>
           </div>
-          <div>
-            <label class="text-sm font-medium">Ciudad</label>
-            <input formControlName="city" type="text" class="mt-1 block w-full rounded-lg border-slate-200 p-3 outline-hidden focus:border-indigo-500" />
-          </div>
-          <div>
-            <label class="text-sm font-medium">Código Postal</label>
-            <input formControlName="zipCode" type="text" class="mt-1 block w-full rounded-lg border-slate-200 p-3 outline-hidden focus:border-indigo-500" />
-          </div>
-        </div>
-        <div class="flex gap-4">
-          <button type="button" (click)="goBack()" class="w-1/3 rounded-lg border border-slate-200 px-6 py-3 font-medium text-slate-600 hover:bg-slate-50 transition-colors">Atrás</button>
-          <button type="button" (click)="submitStep2()" class="w-2/3 rounded-lg bg-indigo-600 px-6 py-3 font-bold text-white hover:bg-indigo-700 shadow-md">Siguiente: Datos Fiscales</button>
-        </div>
-      </form>
-      }
+        </section>
 
-      @if (currentStep() === 3) {
-      <form [formGroup]="fiscalForm" class="space-y-6 animate-in fade-in duration-300">
-        <h2 class="text-xl font-semibold text-slate-800">3. Identidad Fiscal (FacturaE)</h2>
-        <div class="space-y-4">
-          <div>
-            <label class="text-sm font-medium">Razón Social</label>
-            <input formControlName="taxName" type="text" class="mt-1 block w-full rounded-lg border-slate-200 p-3 outline-hidden focus:border-indigo-500" />
+        <footer class="rounded-3xl bg-slate-900 p-8 shadow-2xl ring-1 ring-white/5">
+          <div [formGroup]="form.controls.confirmation" class="mb-8 flex items-start gap-4">
+            <input type="checkbox" 
+                   id="certify-legal"
+                   formControlName="acceptTerms" 
+                   class="mt-1 h-6 w-6 shrink-0 accent-indigo-500 cursor-pointer rounded border-transparent bg-slate-800 transition-all focus:ring-2 focus:ring-indigo-500" />
+            <label for="certify-legal" class="space-y-1 cursor-pointer select-none">
+              <p class="text-xs font-black text-white uppercase tracking-tighter italic">Certificación Administrativa</p>
+              <p class="text-[10px] leading-relaxed text-slate-400 italic font-medium">
+                Certifico que los datos coinciden con la identidad legal y autorizo la creación atómica de la infraestructura.
+              </p>
+            </label>
           </div>
-          <div>
-            <label class="text-sm font-medium">NIF / CIF</label>
-            <input formControlName="taxId" type="text" placeholder="Ej: B12345678" class="mt-1 block w-full rounded-lg border-slate-200 p-3 outline-hidden focus:border-indigo-500" />
-          </div>
-        </div>
-        <div class="flex gap-4">
-          <button type="button" (click)="goBack()" class="w-1/3 rounded-lg border border-slate-200 px-6 py-3 font-medium text-slate-600 hover:bg-slate-50">Atrás</button>
-          <button type="button" (click)="submitStep3()" class="w-2/3 rounded-lg bg-indigo-600 px-6 py-3 font-bold text-white hover:bg-indigo-700 shadow-md">Revisar y Confirmar</button>
-        </div>
-      </form>
-      }
 
-      @if (currentStep() === 4) {
-      <div class="space-y-6 animate-in fade-in duration-300">
-        <h2 class="text-xl font-semibold text-slate-800">4. Confirmación de Datos</h2>
-        <div class="rounded-xl bg-slate-50 p-6 space-y-3 text-sm border border-slate-200">
-          <p><strong>Owner (ID):</strong> <span class="text-indigo-600">{{ wizardService.wizardData().company?.userId }}</span></p>
-          <p><strong>Razón Social:</strong> {{ wizardService.wizardData().fiscal?.corporateName }}</p>
-          <p><strong>Dirección:</strong> {{ wizardService.wizardData().address?.addressLine1 }}, {{ wizardService.wizardData().address?.city }}</p>
-        </div>
-        <form [formGroup]="confirmationForm">
-          <label class="flex items-center gap-3 cursor-pointer group">
-            <input type="checkbox" formControlName="acceptTerms" class="h-5 w-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
-            <span class="text-sm text-slate-600 group-hover:text-slate-900 transition-colors">Confirmo que los datos fiscales son veraces y cumplen con VeriFactu.</span>
-          </label>
-        </form>
-        <div class="flex gap-4">
-          <button type="button" (click)="goBack()" class="w-1/3 rounded-lg border border-slate-200 px-6 py-3 font-medium text-slate-600 hover:bg-slate-50">Atrás</button>
-          <button type="button" (click)="submitStep4()" [disabled]="isLoading() || confirmationForm.invalid"
-            class="w-2/3 rounded-lg bg-green-600 px-6 py-4 font-bold text-white shadow-xl shadow-green-100 transition-all hover:bg-green-700 active:scale-[0.98] disabled:opacity-50">
-            @if (!isLoading()) { <span>🚀 ACTIVAR PATRIMONIO</span> }
-            @else { <span>Ejecutando Transacción Atómica...</span> }
+          <button type="submit" 
+                  [disabled]="isSubmitDisabled()"
+                  class="group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-indigo-600 px-6 py-5 font-black tracking-widest text-white transition-all enabled:hover:bg-indigo-500 enabled:active:scale-[0.98] disabled:opacity-20 disabled:grayscale disabled:cursor-not-allowed shadow-xl shadow-indigo-900/40">
+            @if (isLoading()) {
+              <span class="animate-spin text-xl text-white/50 italic">↻</span>
+              <span class="italic">EJECUTANDO TRANSACCIÓN...</span>
+            } @else {
+              <span>🚀 ACTIVAR PATRIMONIO</span>
+            }
           </button>
-        </div>
+        </footer>
       </div>
-      }
-    </div>
+
+    </form>
   </div>
 </div>

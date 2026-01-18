@@ -7,6 +7,7 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
+import { Tenant } from '../../models/tenant';
 import { UpdateTenantDto } from '../../models/update-tenant-dto';
 
 export interface TenantControllerUpdate$Params {
@@ -14,7 +15,7 @@ export interface TenantControllerUpdate$Params {
       body: UpdateTenantDto
 }
 
-export function tenantControllerUpdate(http: HttpClient, rootUrl: string, params: TenantControllerUpdate$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+export function tenantControllerUpdate(http: HttpClient, rootUrl: string, params: TenantControllerUpdate$Params, context?: HttpContext): Observable<StrictHttpResponse<Tenant>> {
   const rb = new RequestBuilder(rootUrl, tenantControllerUpdate.PATH, 'patch');
   if (params) {
     rb.path('id', params.id, {});
@@ -22,11 +23,11 @@ export function tenantControllerUpdate(http: HttpClient, rootUrl: string, params
   }
 
   return http.request(
-    rb.build({ responseType: 'text', accept: '*/*', context })
+    rb.build({ responseType: 'json', accept: 'application/json', context })
   ).pipe(
     filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
     map((r: HttpResponse<any>) => {
-      return (r as HttpResponse<any>).clone({ body: undefined }) as StrictHttpResponse<void>;
+      return r as StrictHttpResponse<Tenant>;
     })
   );
 }

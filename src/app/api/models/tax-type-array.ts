@@ -7,8 +7,9 @@ import { TaxType } from './tax-type';
  * Each possible value of `TaxType`
  */
 export const TAX_TYPE: TaxType[] = [
-  'VAT',
-  'RETENTION',
+  'IVA',
+  'IRPF',
   'IGIC',
-  'OTHER'
+  'IPSI',
+  'OTRO'
 ];

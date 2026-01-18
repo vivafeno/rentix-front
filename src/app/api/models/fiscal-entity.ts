@@ -4,19 +4,14 @@
 export interface FiscalEntity {
 
   /**
-   * ID de la empresa propietaria del dato (Null si es global)
+   * Código ISO país (ESP)
+   */
+  codigoPais: string;
+
+  /**
+   * ID de la empresa propietaria (Null si es global)
    */
   companyId?: string;
-
-  /**
-   * Razón Social (Solo para Persona Jurídica)
-   */
-  corporateName?: string;
-
-  /**
-   * Código ISO del país (3 caracteres)
-   */
-  countryCode: string;
 
   /**
    * Fecha de creación
@@ -30,11 +25,6 @@ export interface FiscalEntity {
 };
 
   /**
-   * Nombre calculado para documentos oficiales
-   */
-  facturaeName: string;
-
-  /**
    * ID único (UUID v4)
    */
   id: string;
@@ -45,39 +35,39 @@ export interface FiscalEntity {
   isActive: boolean;
 
   /**
-   * Nombre Legal (Solo para Persona Física)
+   * NIF/CIF del obligado tributario
    */
-  legalName?: string;
+  nif: string;
 
   /**
-   * Apellidos (Solo para Persona Física)
+   * Nombre comercial (informativo)
    */
-  legalSurname?: string;
+  nombreComercial?: string;
 
   /**
-   * Tipo de persona: F (Física) o J (Jurídica)
+   * Nombre formateado para Veri*factu
    */
-  personType: 'F' | 'J';
+  nombreOficial: string;
 
   /**
-   * Tipo de residencia (Residente, UE, Extra-UE)
+   * Nombre y Apellidos o Razón Social Completa
    */
-  residenceType: 'R' | 'U' | 'E' | 'O';
+  nombreRazonSocial: string;
 
   /**
-   * NIF, CIF o equivalente fiscal
+   * Tipo de documento (01: NIF, 02: Pasaporte...)
    */
-  taxId: string;
+  tipoIdFiscal: '01' | '02' | '03' | '04' | '05' | '06' | '07';
 
   /**
-   * Tipo de documento fiscal (01: NIF/CIF, 02: Pasaporte...)
+   * F (Física) o J (Jurídica)
    */
-  taxIdType: '01' | '02' | '03' | '04' | '05' | '06' | '07';
+  tipoPersona: 'F' | 'J';
 
   /**
-   * Nombre comercial o marca conocida
+   * Residente (R), UE (U), Extra-UE (E)
    */
-  tradeName?: string;
+  tipoResidencia: 'R' | 'U' | 'E' | 'O';
 
   /**
    * Fecha de última modificación

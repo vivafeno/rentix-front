@@ -4,33 +4,33 @@
 import { ContractStatus } from '../models/contract-status';
 import { FrecuenciaPago } from '../models/frecuencia-pago';
 import { MetodoPago } from '../models/metodo-pago';
-export interface CreateContractDto {
+export interface UpdateContractDto {
 
   /**
    * Día del mes para emitir factura
    */
-  diaFacturacion: number;
+  diaFacturacion?: number;
 
   /**
    * Vigencia en meses
    */
-  duracionMeses: number;
+  duracionMeses?: number;
   estado?: ContractStatus;
-  fechaInicio: string;
+  fechaInicio?: string;
   fianza?: number;
-  frecuenciaPago: FrecuenciaPago;
+  frecuenciaPago?: FrecuenciaPago;
 
   /**
    * IDs de los inquilinos firmantes (Mínimo 1)
    */
-  inquilinosIds: Array<string>;
-  metodoPago: MetodoPago;
+  inquilinosIds?: Array<string>;
+  metodoPago?: MetodoPago;
 
   /**
    * ID del inmueble objeto del alquiler
    */
-  propertyId: string;
-  rentaMensual: number;
+  propertyId?: string;
+  rentaMensual?: number;
 
   /**
    * ID del impuesto IRPF (Tax)
@@ -40,5 +40,5 @@ export interface CreateContractDto {
   /**
    * ID del impuesto IVA (Tax)
    */
-  taxIvaId: string;
+  taxIvaId?: string;
 }

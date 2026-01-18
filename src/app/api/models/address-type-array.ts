@@ -8,7 +8,8 @@ import { AddressType } from './address-type';
  */
 export const ADDRESS_TYPE: AddressType[] = [
   'FISCAL',
-  'COMMERCIAL',
-  'PROPERTY',
-  'OTHER'
+  'COMERCIAL',
+  'INMUEBLE',
+  'NOTIFICACION',
+  'OTRA'
 ];

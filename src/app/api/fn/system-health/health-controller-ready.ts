@@ -7,18 +7,13 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { UpdateAddressDto } from '../../models/update-address-dto';
 
-export interface AddressControllerUpdateDraft$Params {
-  id: string;
-      body: UpdateAddressDto
+export interface HealthControllerReady$Params {
 }
 
-export function addressControllerUpdateDraft(http: HttpClient, rootUrl: string, params: AddressControllerUpdateDraft$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-  const rb = new RequestBuilder(rootUrl, addressControllerUpdateDraft.PATH, 'patch');
+export function healthControllerReady(http: HttpClient, rootUrl: string, params?: HealthControllerReady$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+  const rb = new RequestBuilder(rootUrl, healthControllerReady.PATH, 'get');
   if (params) {
-    rb.path('id', params.id, {});
-    rb.body(params.body, 'application/json');
   }
 
   return http.request(
@@ -31,4 +26,4 @@ export function addressControllerUpdateDraft(http: HttpClient, rootUrl: string, 
   );
 }
 
-addressControllerUpdateDraft.PATH = '/addresses/draft/{id}';
+healthControllerReady.PATH = '/health/ready';

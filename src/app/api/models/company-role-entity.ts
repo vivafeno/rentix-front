@@ -6,7 +6,7 @@ import { User } from '../models/user';
 export interface CompanyRoleEntity {
 
   /**
-   * Empresa a la que pertenece este rol
+   * Empresa asociada a este nivel de autoridad
    */
   company: Company;
 
@@ -34,7 +34,7 @@ export interface CompanyRoleEntity {
   /**
    * Rol del usuario dentro de la empresa
    */
-  role: 'OWNER' | 'TENANT' | 'VIEWER';
+  role: 'PROPIETARIO' | 'ARRENDATARIO' | 'GESTOR';
 
   /**
    * Fecha de última modificación
@@ -42,7 +42,7 @@ export interface CompanyRoleEntity {
   updatedAt: string;
 
   /**
-   * Usuario al que pertenece este rol
+   * Usuario vinculado al rol patrimonial
    */
   user: User;
 }

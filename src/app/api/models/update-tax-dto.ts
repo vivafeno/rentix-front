@@ -5,20 +5,37 @@ import { TaxType } from '../models/tax-type';
 export interface UpdateTaxDto {
 
   /**
-   * Código oficial Facturae
+   * Causa de exención AEAT (ej: E1 para alquiler vivienda)
    */
-  facturaeCode?: string;
+  causaExencion?: string;
 
   /**
-   * Permite activar o desactivar el impuesto para su uso en la plataforma
+   * Código oficial FacturaE (IVA=01, IRPF=02)
+   */
+  codigoFacturae?: string;
+
+  /**
+   * Si es true, el valor resta de la base imponible
+   */
+  esRetencion?: boolean;
+
+  /**
+   * Estado de disponibilidad operativa del impuesto
    */
   isActive?: boolean;
-  isRetention?: boolean;
-  name?: string;
-  rate?: number;
 
   /**
-   * Tipo lógico para Facturae
+   * Nombre descriptivo para la factura
    */
-  type?: TaxType;
+  nombre?: string;
+
+  /**
+   * Porcentaje impositivo (0 a 100)
+   */
+  porcentaje?: number;
+
+  /**
+   * Categorización lógica del impuesto
+   */
+  tipo?: TaxType;
 }

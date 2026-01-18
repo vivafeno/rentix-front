@@ -8,49 +8,57 @@ export interface UpdatePropertyDto {
    * Objeto de dirección física
    */
   address?: CreateAddressDto;
-  bathrooms?: number;
-  bedrooms?: number;
-  cadastralReference?: string;
-  constructionYear?: number;
 
   /**
-   * Memoria descriptiva o notas
+   * Año de construcción
    */
-  description?: string;
+  anoConstruccion?: number;
+  'baños'?: number;
 
   /**
-   * Letra calificación energética
+   * Calificación energética (A-G)
    */
-  energyRating?: string;
+  certificadoEnergetico?: string;
+
+  /**
+   * Referencia interna (ej. P-VAL-001)
+   */
+  codigoInterno?: string;
+  dormitorios?: number;
+  estado?: 'DISPONIBLE' | 'ALQUILADO' | 'RESERVADO' | 'MANTENIMIENTO' | 'NO_DISPONIBLE';
+
+  /**
+   * Notas adicionales
+   */
+  notas?: string;
+  orientacion?: 'NORTE' | 'SUR' | 'ESTE' | 'OESTE' | 'NORESTE' | 'NOROESTE' | 'SURESTE' | 'SUROESTE';
 
   /**
    * Consumo kWh/m2 año
    */
-  energyScore?: number;
-  hasElevator?: boolean;
-  hasParking?: boolean;
-  hasStorageRoom?: boolean;
-  hasTerrace?: boolean;
+  puntuacionEnergetica?: number;
 
   /**
-   * Referencia interna organizacional
+   * Referencia Catastral (Veri*factu)
    */
-  internalCode?: string;
-  orientation?: 'NORTH' | 'SOUTH' | 'EAST' | 'WEST' | 'NORTH_EAST' | 'NORTH_WEST' | 'SOUTH_EAST' | 'SOUTH_WEST';
-  status?: 'AVAILABLE' | 'RENTED' | 'RESERVED' | 'MAINTENANCE' | 'UNAVAILABLE';
+  referenciaCatastral?: string;
 
   /**
    * Superficie total construida (m2)
    */
-  surfaceTotal?: number;
+  superficieConstruida?: number;
 
   /**
    * Superficie útil habitable (m2)
    */
-  surfaceUseful?: number;
+  superficieUtil?: number;
+  tieneAscensor?: boolean;
+  tieneParking?: boolean;
+  tieneTerraza?: boolean;
+  tieneTrastero?: boolean;
 
   /**
    * Tipología funcional
    */
-  type?: 'RESIDENTIAL' | 'COMMERCIAL' | 'INDUSTRIAL' | 'PARKING' | 'STORAGE' | 'ROOM' | 'LAND' | 'OTHER';
+  tipo?: 'VIVIENDA' | 'LOCAL_COMERCIAL' | 'NAVE_INDUSTRIAL' | 'GARAJE' | 'TRASTERO' | 'HABITACION' | 'TERRENO' | 'OTRO';
 }

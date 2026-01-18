@@ -3,22 +3,26 @@
 
 import { CreateAddressDto } from '../models/create-address-dto';
 import { CreateCompanyDto } from '../models/create-company-dto';
-import { CreateFiscalEntityDto } from '../models/create-fiscal-entity-dto';
+import { CreateFiscalDto } from '../models/create-fiscal-dto';
 export interface CreateCompanyLegalDto {
 
   /**
    * Dirección fiscal y de notificaciones
    */
   address: CreateAddressDto;
+
+  /**
+   * Configuración de la entidad de empresa
+   */
   company: CreateCompanyDto;
 
   /**
-   * Datos de identidad fiscal (Alineado con FacturaE/VeriFactu)
+   * Datos de identidad fiscal (Veri*factu Compliant)
    */
-  fiscal: CreateFiscalEntityDto;
+  fiscal: CreateFiscalDto;
 
   /**
-   * ID del usuario al que se vinculará la entidad (Owner/Tenant/Viewer)
+   * ID del usuario al que se vinculará la entidad (UUID v4)
    */
   userId: string;
 }

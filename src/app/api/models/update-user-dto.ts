@@ -4,7 +4,7 @@
 export interface UpdateUserDto {
 
   /**
-   * Rol global del usuario dentro del sistema
+   * Rol global del usuario
    */
   appRole?: 'SUPERADMIN' | 'ADMIN' | 'USER';
 

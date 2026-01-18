@@ -4,13 +4,11 @@ import { SessionService } from '../../services/session.service';
 import { CommonModule } from '@angular/common';
 
 /**
- * @description Shell principal de Rentix 2026.
- * Implementa navegación dinámica segmentada por:
- * 1. PLATAFORMA (ADMIN): Gestión de Infraestructura (Empresas).
- * 2. PATRIMONIAL (OWNER): Gestión Operativa y de Equipo (Viewers).
- * 3. CONSULTA (TENANT): Acceso restringido (Read-Only).
- * * * @author Gemini Blueprint 2026
- * @version 1.5.0
+ * @class MainLayoutComponent
+ * @description Shell principal de Rentix 2026. 
+ * Gestiona la navegación dinámica basada en el contexto patrimonial y roles de seguridad.
+ * @author Rentix 2026
+ * @version 1.7.0
  */
 @Component({
   selector: 'app-main-layout',
@@ -23,10 +21,16 @@ export class MainLayoutComponent {
   private readonly router = inject(Router);
   public readonly session = inject(SessionService);
 
+  /** @description Signal computada: Estado de carga global. */
   readonly isLoading = computed(() => this.session.isLoading());
+
+  /** @description Signal computada: Rol actual en el contexto de la empresa seleccionada. */
   readonly companyRole = computed(() => this.session.currentRole());
 
-  /** * @description Genera el menú dinámico con lógica multinivel.
+  /** * @method menuItems
+   * @description Genera el menú dinámico filtrado por jerarquía de roles.
+   * Resuelve errores TS2367 mediante el uso de literales de rol actualizados (Blueprint 2026).
+   * @returns {Array<{label: string, route: string, icon: string}>}
    */
   readonly menuItems = computed(() => {
     const user = this.session.user();
@@ -34,7 +38,14 @@ export class MainLayoutComponent {
     const currentRole = this.companyRole(); 
     const hasCompany = !!this.session.companyId();
 
-    /** 1. ACCESO BASE */
+    /** * @description Banderas de acceso.
+     * CORRECCIÓN: Los roles ahora se comparan con los literales del nuevo API (PROPIETARIO, ARRENDATARIO).
+     */
+    const isPlatformAdmin = appRole === 'SUPERADMIN' || appRole === 'ADMIN';
+    const isOwner = hasCompany && currentRole === 'PROPIETARIO' as any;
+    const isTenant = hasCompany && currentRole === 'ARRENDATARIO' as any;
+
+    // 1. Acceso Base
     const menu = [
       { 
         label: 'Dashboard', 
@@ -43,24 +54,16 @@ export class MainLayoutComponent {
       }
     ];
 
-    const isPlatformAdmin = appRole === 'SUPERADMIN' || appRole === 'ADMIN';
-    const isOwner = hasCompany && currentRole === 'OWNER';
-    const isTenant = hasCompany && currentRole === 'TENANT';
-
-    /** 2. GESTIÓN DE INFRAESTRUCTURA (ADMIN)
-     * Acceso al Wizard de creación de empresas.
-     */
+    // 2. Gestión de Infraestructura (ADMIN)
     if (isPlatformAdmin) {
       menu.push({ 
         label: 'Nueva Empresa', 
-        route: '/app/companies/wizard', 
+        route: '/app/create-company',
         icon: 'M12 6v6m0 0v6m0-6h6m-6 0H6' 
       });
     }
 
-    /** 3. GESTIÓN OPERATIVA (ADMIN / OWNER)
-     * Núcleo del negocio patrimonial.
-     */
+    // 3. Gestión Operativa (ADMIN / OWNER)
     if (isPlatformAdmin || isOwner) {
       menu.push(
         { label: 'Inmuebles', route: '/app/properties', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m4 0h1m-5 10h1m4 0h1m-5-4h1m4 0h1' },
@@ -70,18 +73,16 @@ export class MainLayoutComponent {
       );
     }
 
-    /** 4. GESTIÓN DE EQUIPO (Solo OWNER)
-     * Capacidad de invitar Viewers/Gestores a su patrimonio.
-     */
+    // 4. Gestión de Equipo (Solo OWNER)
     if (isOwner) {
       menu.push({ 
-        label: 'Gestores / Viewers', 
+        label: 'Equipo', 
         route: '/app/settings/team', 
         icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z' 
       });
     }
 
-    /** 5. CONFIGURACIÓN (ADMIN / OWNER) */
+    // 5. Configuración (ADMIN / OWNER)
     if (isPlatformAdmin || isOwner) {
       menu.push({ 
         label: 'Configuración', 
@@ -90,18 +91,33 @@ export class MainLayoutComponent {
       });
     }
 
-    /** 6. NIVEL ARRENDATARIO (TENANT) */
+    // 6. Nivel Arrendatario (TENANT)
     if (isTenant) {
       menu.push(
         { label: 'Mis Contratos', route: '/app/my-contracts', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
-        { label: 'Mis Facturas', route: '/app/my-invoices', icon: 'M9 8l3 5m0 0l3-5m-3 5v4m-3-5h6m-6 3h6m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
-        { label: 'Mi Perfil Fiscal', route: '/app/tenants/profile', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' }
+        { label: 'Facturas', route: '/app/my-invoices', icon: 'M9 8l3 5m0 0l3-5m-3 5v4m-3-5h6m-6 3h6m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
+        { label: 'Perfil Fiscal', route: '/app/tenants/profile', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' }
       );
     }
 
     return menu;
   });
 
-  logout(): void { this.session.logout(); }
-  changeCompany(): void { this.router.navigate(['/select-company']); }
+  /**
+   * @method logout
+   * @description Finaliza la sesión y purga el estado local.
+   * @returns {void}
+   */
+  public logout(): void { 
+    this.session.logout(); 
+  }
+
+  /**
+   * @method changeCompany
+   * @description Navega hacia la selección de contexto empresarial.
+   * @returns {void}
+   */
+  public changeCompany(): void { 
+    this.router.navigate(['/select-company']); 
+  }
 }
